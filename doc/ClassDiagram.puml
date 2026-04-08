@@ -1,0 +1,157 @@
+@startuml RogueLib_ClassDiagram
+!define ABSTRACT abstract
+!define INTERFACE interface
+
+' Namespaces
+package "RogueLib.Engine" {
+  class Game {
+    - const int width
+    - const int height
+    - Scene _currentLevel
+    - bool _isQuit
+    - IRenderWindow _window
+    - Player _player
+    + Game()
+    + run(): void
+    # HandleUserInput(): void
+  }
+
+  class Command {
+    - string _name
+    + string Name {get}
+    + Command(string name)
+  }
+}
+
+package "RogueLib.Dungeon" {
+  INTERFACE IRenderWindow {
+    + Draw(string s, ConsoleColor color): void
+    + Draw(string s, Vector2 offset, ConsoleColor color): void
+    + Draw(char glyph, Vector2 pos, ConsoleColor color): void
+    + fDraw(FilterSet fs, string s, ConsoleColor color): void
+    + Display(): void
+  }
+
+  INTERFACE IDrawable {
+    + Draw(IRenderWindow disp): void
+  }
+
+  INTERFACE ICommandable {
+    + HasCommand(ConsoleKey key): bool
+    + DoCommand(Command command): void
+  }
+
+  ABSTRACT class Scene {
+    # Player _player
+    # Game _game
+    # bool _levelActive
+    # CommandMap _commandMap
+    + bool IsActive {get}
+    + {abstract} DoCommand(Command command): void
+    + {abstract} Draw(IRenderWindow disp): void
+    + {abstract} Update(): void
+    + HasCommand(ConsoleKey inputKey): bool
+    + GetCommand(ConsoleKey inputKey): string
+    # RegisterCommand(ConsoleKey, string): void
+    + Scene()
+  }
+}
+
+package "RogueLib.Utilities" {
+  struct Vector2 {
+    + int X {get}
+    + int Y {get}
+    + Vector2(int x, int y)
+    + Vector2()
+    + {static} Vector2 Zero
+    + {static} Vector2 One
+    + {static} Vector2 N, S, E, W
+    + {static} Vector2 NE, NW, SE, SW
+    + ToString(): string
+    + Equals(Vector2 other): bool
+    + GetHashCode(): int
+    + CompareTo(Vector2 other): int
+    + {static} operator +(Vector2, Vector2): Vector2
+    + {static} operator -(Vector2, Vector2): Vector2
+    + {static} operator *(int, Vector2): Vector2
+    + {static} operator *(Vector2, int): Vector2
+    + {static} operator /(Vector2, int): Vector2
+    + {static} operator ==(Vector2, Vector2): bool
+    + {static} operator !=(Vector2, Vector2): bool
+    + {static} manhattanDistance(Vector2, Vector2): int
+    + {static} IsDistanceWithin(Vector2, Vector2, int): bool
+    + {static} getAllTiles(int w, int h): IEnumerable<Vector2>
+    + {static} Parse(string text): IEnumerable<(char, Vector2)>
+    + int LengthSquared {get}
+    + float Length {get}
+    + int RookLength {get}
+    + int KingLength {get}
+  }
+
+  class ScreenBuff {
+    - const ConsoleColor _notAColor
+    - int _width
+    - int _height
+    - char[,] _back
+    - char[,] _front
+    - ConsoleColor[,] _backColor
+    - ConsoleColor[,] _frontColor
+    + int Width {get}
+    + int Heigth {get}
+    + ScreenBuff(int width, int height)
+    + fDraw(FilterSet fs, string s, ConsoleColor color): void
+    + Draw(string s, ConsoleColor color): void
+    + Draw(string s, Vector2 pos, ConsoleColor color): void
+    + Draw(char c, Vector2 pos, ConsoleColor foregroundColor): void
+    + Display(): void
+    # IsValidPos(Vector2 pos): bool
+    # ResetFront(): void
+    # BuildOffsetFrame(string s, Vector2 offset, ConsoleColor color, FilterSet filterSet): void
+    # FlushToScreen(): void
+  }
+
+  class Player {
+    + string Name {get; set}
+    + Vector2 Pos
+    + char Glyph {get}
+    # int _level
+    # int _hp
+    # int _str
+    # int _arm
+    # int _exp
+    # int _gold
+    # int _maxHp
+    # int _maxStr
+    # int _turn
+    + Player()
+    + string HUD {get}
+    + Update(): void
+  }
+}
+
+' Relationships
+Scene --|> ICommandable : implements
+Scene --|> IDrawable : implements
+
+Player --|> IActor : implements
+
+ScreenBuff --|> IRenderWindow : implements
+
+Game "*" --o "1" Scene : manages
+Game "*" --o "1" Player : has
+Game "*" --o "1" IRenderWindow : uses
+
+Scene "*" --o "1" Player : references
+Scene "*" --o "1" Game : references
+
+IDrawable : uses
+IDrawable --> IRenderWindow : parameter
+
+ICommandable --> Command : uses
+
+Vector2 : used by
+ScreenBuff --> Vector2 : uses
+Scene --> Vector2 : uses
+Player --> Vector2 : uses
+
+@enduml
