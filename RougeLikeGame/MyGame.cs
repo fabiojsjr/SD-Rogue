@@ -16,7 +16,7 @@ public class MyGame : Game {
       // the level switching. 
       
       _window       = new ScreenBuff();
-      _player       = new Player();
+      _player       = new Rogue();
       _currentLevel = new Level(_player, map1, this);
       
    }

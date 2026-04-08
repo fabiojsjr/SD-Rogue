@@ -1,7 +1,7 @@
 using RogueLib.Dungeon;
 using RogueLib.Utilities;
 
-public class Player : IActor, IDrawable {
+public abstract class Player : IActor, IDrawable {
    public string       Name { get; set; }
    public Vector2      Pos;
    public char         Glyph => '@';
