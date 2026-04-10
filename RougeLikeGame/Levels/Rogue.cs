@@ -22,12 +22,14 @@ public abstract class RogueClass : Player {
 }
 
 // Concrete archetypes
+
+//character classes with different stats and playstyles
 public class Paladin : RogueClass {
     public Paladin() : base("Paladin", "skilled melee fighter. High HP and armour.", hp: 20, str: 18, arm: 6) { }
 }
 
 public class Rogue : RogueClass {
-    public Rogue() : base("Rogue", "Fast and stealthy. Good at finding treasure.", hp: 14, str: 14, arm: 3) { }
+    public Rogue() : base("Rogue", "Fast and stealthy. Medium HP and locate items easiliy.", hp: 14, str: 14, arm: 3) { }
 }
 
 public class Wizard : RogueClass {

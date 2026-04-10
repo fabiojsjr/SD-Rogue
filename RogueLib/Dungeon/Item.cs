@@ -10,15 +10,30 @@ public abstract class Item : IDrawable {
 
     public Vector2 Pos { get; set; }
     public char Glyph => _glyph;
+
     protected char _glyph;
     protected ConsoleColor _color;
 
     public Item(char gly, Vector2 pos, ConsoleColor color = ConsoleColor.Yellow) {
-    
         _color = color;
         _glyph = gly;
         Pos = pos;
     }
+    public virtual string Name => GetType().Name;
+    public virtual string Description => string.Empty;
+    public class ItemDTO {
+        public string Type { get; set; } = "";
+        public int Amount { get; set; }
+    }
+    public virtual ItemDTO ToDTO() => new ItemDTO { Type = GetType().Name };
+    public static Item? FromDTO(ItemDTO dto)
+    {
+        return dto.Type switch
+        {
+            _ => null,
+        };
+    }
+
     public void Draw(IRenderWindow disp) {
         disp.Draw(_glyph, Pos, _color);
     }

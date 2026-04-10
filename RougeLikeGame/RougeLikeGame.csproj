@@ -16,4 +16,8 @@
       <ProjectReference Include="..\RogueLib\RogueLib.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="SandBox01\" />
+    </ItemGroup>
+
 </Project>

@@ -1,11 +1,12 @@
 using RogueLib.Dungeon;
 using RogueLib.Utilities;
 
-public abstract class Player : IActor, IDrawable
+
+public abstract class Player : IActor, IDrawable 
 {
     public string Name { get; set; }
     public Vector2 Pos;
-    public char Glyph => '@';
+    public string Glyph => "☺";
     public ConsoleColor _color = ConsoleColor.White;
 
     protected int _level = 0;
@@ -19,25 +20,43 @@ public abstract class Player : IActor, IDrawable
     protected int _turn = 0;
 
     public int Turn => _turn;
-
-    // Inventory for the player
-    public Inventory Inventory { get; } = new Inventory();
-
     public Player()
     {
         Name = "Rogue";
         Pos = Vector2.Zero;
     }
-
     public string HUD =>
-       $"Level:{_level}  Gold: {_gold}    Hp: {_hp}({_maxHp})" +
+       $" Level:{_level}  Gold: {_gold}    Hp: {_hp}({_maxHp})" +
        $"  Str: {_str}({_maxStr})" +
        $"  Arm: {_arm}   Exp: {_exp}/{10} Turn: {_turn}";
 
+   // expose gold for saving/loading
+   public int Gold {
+      get => _gold;
+      set => _gold = value;
+   }
     public void AddGold(int amount)
     {
         if (amount <= 0) return;
         _gold += amount;
+    }
+    public void AddExp(int amount)
+    {
+        if (amount <= 0) return;
+        _exp += amount;
+        if (_exp >= 10)
+        {
+            LevelUp();
+            _exp -= 10; // reset after leveling up
+        }
+    }
+    protected virtual void LevelUp()
+    {
+        _level++;
+        _maxHp += 2;
+        _maxStr += 1;
+        _hp = _maxHp;
+        _str = _maxStr;
     }
     public virtual void Update()
     {
@@ -56,5 +75,38 @@ public abstract class Player : IActor, IDrawable
             _hp = 0;
             // Handle player death (e.g., trigger game over)
         }
+    }
+
+    private readonly Inventory _inventory = new Inventory();
+
+    public void Add(Item item)
+    {
+        if (item == null) return;
+        _inventory.Add(item);
+    }
+
+    public bool Remove(Item item) => _inventory.Remove(item);
+
+    public IReadOnlyList<Item> Items => _inventory.Items;
+
+    // Display the inventory to the console.
+    public void ShowInventory()
+    {
+        Console.Clear();
+        Console.WriteLine("Inventory:");
+        if (Items.Count == 0)
+        {
+            Console.WriteLine(" - (empty)");
+        }
+        else
+        {
+            for (int i = 0; i < Items.Count; i++)
+            {
+                Console.WriteLine($" {i + 1}. {Items[i].Name}: {Items[i].Description}");
+            }
+        }
+        Console.WriteLine("\nPress any key to continue...");
+        Console.ReadKey(true);
+        Console.Clear();
     }
 }
