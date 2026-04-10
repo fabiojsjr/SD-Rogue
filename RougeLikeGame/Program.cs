@@ -1,10 +1,8 @@
 ﻿using RogueLib.Dungeon;
 using RogueLib.Engine;
-using RogueLib.Utilities;
 using SandBox01;
+using SandBox01.Levels;
 using Spectre.Console;
-using System.Linq;
-using TileSet = System.Collections.Generic.HashSet<RogueLib.Utilities.Vector2>;
 
 namespace RlGameNS;
 class Program
@@ -15,21 +13,21 @@ class Program
         Console.Clear();
        // Game game = new MyGame();
         //game.run();
-        bool isRunning = false;
-        while (!isRunning)
+        bool isRunning = true;
+        AnsiConsole.MarkupLine("[bold red]Welcome to the RogueLike Game![/]\n");
+
+        while (isRunning)
         {
-            AnsiConsole.MarkupLine("[bold red]Welcome to the RogueLike Game![/]\n");
             string userChoice = AnsiConsole.Prompt( new SelectionPrompt<string>()
                                 .Title("\nMain menu:")
                                 .AddChoices(
-                                [
-                                    "(1) new Game:",
+                                
+                                    "(1) New Game:",
                                     "(2) Load Game:",
                                     "(3) Characters:",
                                     "(4) Rules:",
-
                                     "(Q) Quit"
-                                ])
+                                )
                             );
 
 
@@ -43,13 +41,17 @@ class Program
                     Console.WriteLine("Load Game");
                     break;
                 case "(3) Characters:":
-                    Console.WriteLine("Characters");
+                    Console.Clear();
+                    var options = RogueFactory.GetOptions();
+                    var choice = AnsiConsole.Prompt(new SelectionPrompt<string>().Title("Choose a class:").AddChoices(options));
+                    var player = RogueFactory.Create(choice);
+                    AnsiConsole.MarkupLine($"Selected: [green]{player.Name}[/] - {player.Description} - {player.HUD}");
                     break;
                 case "(4) Rules:":
-                    Console.WriteLine("Rules");
+                    Rules rules = new Rules();
                     break;
-                case "(5) Quit":
-                    isRunning = true;
+                case "(Q) Quit":
+                    isRunning = false;
                     break;
             }
 

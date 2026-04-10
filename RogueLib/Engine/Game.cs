@@ -13,6 +13,7 @@ namespace RogueLib.Engine;
 // ------------------------------------------------------- 
 
 public class Game {
+    
    // fixed size grid
    public const int width  = 78;
    public const int height = 25;
@@ -56,4 +57,5 @@ public class Game {
       if (_currentLevel!.HasCommand(key.Key))
          _currentLevel!.DoCommand(new Command(_currentLevel!.GetCommand(key.Key)));
    }
+   public virtual void SaveToFile(string path) { }
 }
