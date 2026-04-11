@@ -41,6 +41,7 @@ public class Level : Scene
     protected TileSet _inFov;      // current fov of player
 
     protected List<Item> _items;
+    private IEnumerable<object> _npcs;
 
     public Level(Player p, string map, Game game)
     {
@@ -55,10 +56,11 @@ public class Level : Scene
         initMapTileSets(map);
         updateDiscovered();
         registerCommandsWithScene();
-        spreadTheGold();
+        SpreadTheGold();
+        SpreadTheXP();
     }
 
-    private void spreadTheGold()
+    private void SpreadTheGold()
     {
 
         var rng = new Random();
@@ -67,6 +69,16 @@ public class Level : Scene
         {
             var pos = _floor.ElementAt(rng.Next(_floor.Count));
             _items.Add(new Gold(pos, rng.Next(100, 200)));
+        }
+    }
+    private void SpreadTheXP()
+    {
+        var rng = new Random();
+        var howMuch = rng.Next(5, 8);
+        for (int i = 0; i < howMuch; i++)
+        {
+            var pos = _floor.ElementAt(rng.Next(_floor.Count));
+            _items.Add(new XP(pos, rng.Next(1, 5)));
         }
     }
     protected void updateDiscovered()
@@ -86,13 +98,21 @@ public class Level : Scene
     {
         _player!.Update();
         // foreach item update
+        /*foreach (Item item in _items)
+        {  
+               
+        }
         // foreach NPC update 
+      
         // check for player death -- on death build RIP message
+        if (_player.HP <= 0)
+        {
+                
+        }*/
     }
 
     public override void Draw(IRenderWindow? disp)
     {
-        // using custom RenderWindow, cast to my RenderWindow
         var tilesToDraw = new TileSet(_decor);
         tilesToDraw.IntersectWith(_discovered);
         tilesToDraw.UnionWith(_inFov);
@@ -131,8 +151,6 @@ public class Level : Scene
         }
         else if (command.Name == "inventory")
         {
-            // Prefer showing the player's inventory directly so the UI works
-            // regardless of the concrete Game implementation.
             try
             {
                 _player?.ShowInventory();
@@ -282,9 +300,16 @@ public class Level : Scene
                     try { Console.SetCursorPosition(0, 23); } catch { }
                     Console.WriteLine($"Picked up {g.Amount} gold.");
                 }
+                else if (item is XP xp)
+                {
+                    _player!.AddExp(xp.Amount);
+                    _items.Remove(item);
+                    try { Console.SetCursorPosition(0, 23); } catch { }
+                    Console.WriteLine($"Picked up {xp.Amount} XP.");
+                }
                 else
                 {
-                    // add item to player's inventory
+                    // add item to player's inventorys
                     _player!.Add(item);
                     _items.Remove(item);
                     try { Console.SetCursorPosition(0, 23); } catch { }

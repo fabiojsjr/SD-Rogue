@@ -19,8 +19,33 @@ public abstract class Item : IDrawable {
         _glyph = gly;
         Pos = pos;
     }
+
+    protected Item(string gold, string xp, Vector2 pos = default)
+    {
+        Pos = pos;
+    }
+
+    protected Item(char gly, string xp, Vector2 pos, ConsoleColor color = ConsoleColor.Green) 
+    {
+        _color = color;
+        _glyph = gly;
+        Pos = pos;
+    }
+
+    protected Item(char v, System.Numerics.Vector2 pos, ConsoleColor green)
+    {
+        V = v;
+        Pos1 = pos;
+        Green = green;
+    }
+
     public virtual string Name => GetType().Name;
     public virtual string Description => string.Empty;
+
+    public char V { get; }
+    public System.Numerics.Vector2 Pos1 { get; }
+    public ConsoleColor Green { get; }
+
     public class ItemDTO {
         public string Type { get; set; } = "";
         public int Amount { get; set; }

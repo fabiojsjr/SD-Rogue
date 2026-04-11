@@ -13,7 +13,7 @@ namespace SandBox01;
 public class MyGame : Game
 {
 
-    private void init()
+    private void init(Player? chosenPlayer = null)
     {
         // To create a new game just need to 
         // 'inject' an IRenderWindow to draw the game one
@@ -30,7 +30,6 @@ public class MyGame : Game
 
     public MyGame()
     {
-        // init level on construction 
         init();
     }
     public void ShowInventory()
@@ -38,8 +37,8 @@ public class MyGame : Game
         try { Console.SetCursorPosition(0, 0); } catch { }
         Console.Clear();
         AnsiConsole.MarkupLine("[yellow]Inventory:[/]");
-        // Show currency (gold) separately since Gold is treated as currency, not an inventory Item
         AnsiConsole.MarkupLine($"[green]Gold:[/] {_player.Gold}");
+        AnsiConsole.MarkupLine($"[green]XP:[/] {_player.Exp}");
 
         if (_player.Items.Count != 0)
         {
@@ -62,6 +61,14 @@ public class MyGame : Game
     {
         public string PlayerName { get; init; }
         public int PlayerGold { get; init; }
+        public int PlayerXP { get; init; }
+        public int PlayerStrength { get; init; } = 0;
+        public int PlayerLevel { get; init; }
+        public int PlayerHealth { get; init; }
+        public string EnemyName { get; init; }
+        public int EnemyGold { get; init; }
+        public int EnemyXP { get; init; }
+        public int EnemyHP { get; init; }
         public string Map { get; init; }
         public Item.ItemDTO[]? Inventory { get; init; }
     }

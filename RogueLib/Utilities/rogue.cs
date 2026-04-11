@@ -1,5 +1,4 @@
 
-
 namespace RogueLib.Utilities;
 public abstract class RogueClass : Player {
     public string ClassName { get; }

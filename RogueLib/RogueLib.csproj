@@ -8,7 +8,6 @@
 
     <ItemGroup>
       <Folder Include="Actors\" />
-      <Folder Include="enemies\" />
     </ItemGroup>
 
 </Project>

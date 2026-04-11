@@ -1,8 +1,9 @@
 using RogueLib.Dungeon;
-using RogueLib.Utilities;
+using SandBox01.Levels;
 
+namespace RogueLib.Utilities;
 
-public abstract class Player : IActor, IDrawable 
+public abstract class Player :  IActor, IDrawable  
 {
     public string Name { get; set; }
     public Vector2 Pos;
@@ -22,11 +23,12 @@ public abstract class Player : IActor, IDrawable
     public int Turn => _turn;
     public Player()
     {
-        Name = "Rogue";
         Pos = Vector2.Zero;
+        RogueClass = new RogueClass();
     }
+
     public string HUD =>
-       $" Level:{_level}  Gold: {_gold}    Hp: {_hp}({_maxHp})" +
+       $" Class: {RogueClass}  Level:{_level}  Gold: {_gold}    Hp: {_hp}({_maxHp})" +
        $"  Str: {_str}({_maxStr})" +
        $"  Arm: {_arm}   Exp: {_exp}/{10} Turn: {_turn}";
 
@@ -35,6 +37,11 @@ public abstract class Player : IActor, IDrawable
       get => _gold;
       set => _gold = value;
    }
+   public int Exp {
+      get => _exp;
+      set => _exp = value;
+    }
+
     public void AddGold(int amount)
     {
         if (amount <= 0) return;
@@ -44,11 +51,14 @@ public abstract class Player : IActor, IDrawable
     {
         if (amount <= 0) return;
         _exp += amount;
-        if (_exp >= 10)
+
+        while (_exp >= 10)
         {
+            _exp -= 10;
             LevelUp();
-            _exp -= 10; // reset after leveling up
         }
+
+        if (_exp < 0) _exp = 0;
     }
     protected virtual void LevelUp()
     {
@@ -89,7 +99,10 @@ public abstract class Player : IActor, IDrawable
 
     public IReadOnlyList<Item> Items => _inventory.Items;
 
-    // Display the inventory to the console.
+    public object XP { get; set; }
+    public int HP { get; set; }
+    public string? RogueClass { get; }
+
     public void ShowInventory()
     {
         Console.Clear();
@@ -98,7 +111,7 @@ public abstract class Player : IActor, IDrawable
         {
             Console.WriteLine(" - (empty)");
         }
-        else
+        else if (Items.Count > 0)
         {
             for (int i = 0; i < Items.Count; i++)
             {
@@ -107,6 +120,5 @@ public abstract class Player : IActor, IDrawable
         }
         Console.WriteLine("\nPress any key to continue...");
         Console.ReadKey(true);
-        Console.Clear();
     }
 }

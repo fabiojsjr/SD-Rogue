@@ -41,13 +41,35 @@ class Program
                 case "(1) New Game:":
                     AnsiConsole.MarkupLine("[green]Starting new game...[/]");
                     try { System.Threading.Thread.Sleep(700); } catch { }
+                  
+                        Console.Write("Enter class name: ");
+                        string option = Console.ReadLine();
+
+                        Player chosen = option switch
+                        {
+                            "Barbarian" => new Barbarian(),
+                            "Paladin" => new Paladin(),
+                            "Rogue" => new Rogue(),
+                            "Wizard" => new Wizard(),
+                            "Archer" => new Archer(),
+                            _ => null
+                        };
+
+                        if (chosen != null)
+                        {
+                            Console.WriteLine($"You selected: {option}");
+                           
+                        }
+
+                        Console.WriteLine("Invalid choice. Try again.");
+                    
+
                     Console.Clear();
                     Game game = new MyGame();
                     game.run();
                     break;
                 case "(2) Load Game":
-                  
-
+                        
                     break;
                 case "(3) Characters:":
                     Console.Clear();
