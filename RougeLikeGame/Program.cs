@@ -1,10 +1,11 @@
 ﻿using RogueLib.Dungeon;
 using RogueLib.Engine;
+using RogueLib.Utilities;
 using SandBox01;
 using SandBox01.Levels;
-using System.Linq;
-using System.IO;
 using Spectre.Console;
+using System.IO;
+using System.Linq;
 
 namespace RlGameNS;
 
@@ -45,25 +46,16 @@ class Program
                         Console.Write("Enter class name: ");
                         string option = Console.ReadLine();
 
-                        Player chosen = option switch
-                        {
-                            "Barbarian" => new Barbarian(),
-                            "Paladin" => new Paladin(),
-                            "Rogue" => new Rogue(),
-                            "Wizard" => new Wizard(),
-                            "Archer" => new Archer(),
-                            _ => null
-                        };
+                    // Show class list
+                    var Choice = AnsiConsole.Prompt(
+                        new SelectionPrompt<string>()
+                            .Title("Choose your class:")
+                            .AddChoices(RogueFactory.GetOptions())
+                    );
+                    Player chosen = RogueFactory.Create(Choice);
 
-                        if (chosen != null)
-                        {
-                            Console.WriteLine($"You selected: {option}");
-                           
-                        }
-
-                        Console.WriteLine("Invalid choice. Try again.");
-                    
-
+                    Console.WriteLine($"You selected: {Choice}");
+                    try { System.Threading.Thread.Sleep(700); } catch { }
                     Console.Clear();
                     Game game = new MyGame();
                     game.run();

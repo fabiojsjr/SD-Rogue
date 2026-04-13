@@ -12,7 +12,12 @@ namespace SandBox01;
 
 public class MyGame : Game
 {
+    private Player _player;
 
+    public MyGame(Player player)
+    {
+        _player = player;
+    }
     private void init(Player? chosenPlayer = null)
     {
         // To create a new game just need to 

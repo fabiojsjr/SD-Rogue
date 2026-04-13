@@ -1,10 +1,11 @@
 using RogueLib.Dungeon;
-using SandBox01.Levels;
 
 namespace RogueLib.Utilities;
 
 public abstract class Player :  IActor, IDrawable  
 {
+
+
     public string Name { get; set; }
     public Vector2 Pos;
     public string Glyph => "☺";
@@ -21,12 +22,12 @@ public abstract class Player :  IActor, IDrawable
     protected int _turn = 0;
 
     public int Turn => _turn;
-    public Player()
+    public Player(string name, string className)
     {
+        Name = name;
+        RogueClass = className;
         Pos = Vector2.Zero;
-        RogueClass = new RogueClass();
     }
-
     public string HUD =>
        $" Class: {RogueClass}  Level:{_level}  Gold: {_gold}    Hp: {_hp}({_maxHp})" +
        $"  Str: {_str}({_maxStr})" +
@@ -98,10 +99,9 @@ public abstract class Player :  IActor, IDrawable
     public bool Remove(Item item) => _inventory.Remove(item);
 
     public IReadOnlyList<Item> Items => _inventory.Items;
-
-    public object XP { get; set; }
-    public int HP { get; set; }
-    public string? RogueClass { get; }
+    public string? RogueClass { get; set; }
+    public int Strength => _str;
+    public Inventory Inventory => _inventory;
 
     public void ShowInventory()
     {

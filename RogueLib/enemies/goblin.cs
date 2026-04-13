@@ -1,23 +1,18 @@
 ﻿using RogueLib.Dungeon;
 using RogueLib.Engine;
+using RogueLib.Utilities;
 using System;
-using System.Collections.Generic;
-using System.Numerics;
-using System.Text;
-using System.Xml.Linq;
 
 namespace RogueLib.enemies
 {
-    public class Goblin : Item
+    public class Goblin : NPC
     {
-        private Vector2 vector2;
+        public int Health { get; set; }
 
-        public string Name { get; set; }
-        public int Health { get; set; } = 50;
-        public Goblin(Vector2 pos, string name, int health) : base('☠', pos, ConsoleColor.DarkGreen)
+        public Goblin(Vector2 pos, string name, int health)
+            : base(pos, name, '☠', ConsoleColor.DarkGreen, health, 5)
         {
-                 Name = name;
-                 Health = health;
+            Health = health;
         }
 
         public void TakeDamage(int damage)

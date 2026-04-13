@@ -1,4 +1,5 @@
 using RogueLib.Dungeon;
+using RogueLib.enemies;
 using RogueLib.Engine;
 using RogueLib.Utilities;
 using RougeLikeGame.Levels;
@@ -7,7 +8,6 @@ using Spectre.Console;
 using TileSet = System.Collections.Generic.HashSet<RogueLib.Utilities.Vector2>;
 
 namespace RlGameNS;
-
 // -----------------------------------------------------------------------
 // The Level is the model, all the game world objects live in the model. 
 // player input updates the model, the model updates the view, and the 
@@ -23,25 +23,27 @@ namespace RlGameNS;
 // GameScreen what tiles to draw. TileSets can be combined with Union and 
 // Intersect to create complex tile sets.
 // -----------------------------------------------------------------------
+
 public class Level : Scene
 {
     // ---- level config ---- 
     protected string? _map;
     protected int _senseRadius = 4;
 
-    // --- Tile Sets -----
-    // used to keep track of state of tiles on the map
-    protected TileSet _walkables; // walkable tiles 
-    protected TileSet _floor;
+    // --- Tile Sets ----- 
+    protected TileSet _walkables; // used to keep track of state of tiles on the map
+    protected TileSet _floor;// walkable tiles 
     protected TileSet _tunnel;
-    protected TileSet _door;
-    protected TileSet _decor; // walls and other decorations, always visible once discovered
-
-    protected TileSet _discovered; // tiles the player has seen
-    protected TileSet _inFov;      // current fov of player
+    protected TileSet _door;// walls and other decorations, always visible once discovered
+    protected TileSet _decor;
+    // tiles the player has seen
+    // current fov of player
+    // random, or at stairs
+    protected TileSet _discovered;
+    protected TileSet _inFov;
 
     protected List<Item> _items;
-    private IEnumerable<object> _npcs;
+    private List<NPC> _npcsList = new List<NPC>();
 
     public Level(Player p, string map, Game game)
     {
@@ -49,7 +51,7 @@ public class Level : Scene
             throw new ArgumentNullException("game, player, or map cannot be null");
 
         _player = p;
-        _player.Pos = new Vector2(4, 12); // random, or at stairs
+        _player.Pos = new Vector2(4, 12);
         _map = map;
         _game = game;
         _items = new List<Item>();
@@ -58,29 +60,70 @@ public class Level : Scene
         registerCommandsWithScene();
         SpreadTheGold();
         SpreadTheXP();
+        SpreadTheItems();
+        SpreadTheEnemies();
     }
 
     private void SpreadTheGold()
     {
-
         var rng = new Random();
-        var howMuch = rng.Next(5, 10);
+        var howMuch = rng.Next(5, 20);
         for (int i = 0; i < howMuch; i++)
         {
             var pos = _floor.ElementAt(rng.Next(_floor.Count));
             _items.Add(new Gold(pos, rng.Next(100, 200)));
         }
     }
+
+    private void SpreadTheItems()
+    {
+        var rng = new Random();
+        var howMuch = rng.Next(5, 20);
+        for (int i = 0; i < howMuch; i++)
+        {
+            var pos = _floor.ElementAt(rng.Next(_floor.Count));
+            _items.Add(new Potion(pos, "Health Potion", '!', ConsoleColor.Red));
+        }
+    }
+
+    private void SpreadTheEnemies()
+    {
+        var rng = new Random();
+        var howMuch = rng.Next(5, 10);
+
+        for (int i = 0; i < howMuch; i++)
+        {
+            var pos = _floor.ElementAt(rng.Next(_floor.Count));
+
+            var gob = new Goblin(pos, "Goblin", 10);
+            gob.PlayerRef = _player;
+
+            _npcsList.Add(gob);
+        }
+    }
+
+    private void DrawEnemies(IRenderWindow disp)
+    {
+        if (_inFov is null) return;
+
+        foreach (var npc in _npcsList)
+        {
+            if (_inFov.Contains(npc.Pos))
+                npc.Draw(disp);
+        }
+    }
+
     private void SpreadTheXP()
     {
         var rng = new Random();
-        var howMuch = rng.Next(5, 8);
+        var howMuch = rng.Next(5, 15);
         for (int i = 0; i < howMuch; i++)
         {
             var pos = _floor.ElementAt(rng.Next(_floor.Count));
             _items.Add(new XP(pos, rng.Next(1, 5)));
         }
     }
+
     protected void updateDiscovered()
     {
         _inFov = fovCalc(_player!.Pos, _senseRadius);
@@ -91,26 +134,25 @@ public class Level : Scene
     }
 
     protected TileSet fovCalc(Vector2 pos, int sens)
-       => Vector2.getAllTiles().Where(t => (pos - t).RookLength < sens).ToHashSet();
-
+        => Vector2.getAllTiles().Where(t => (pos - t).RookLength < sens).ToHashSet();
     // -----------------------------------------------------------------------
     public override void Update()
     {
         _player!.Update();
+        foreach (var npc in _npcsList)
+            npc.Update();
         // foreach item update
-        /*foreach (Item item in _items)
-        {  
-               
-        }
-        // foreach NPC update 
-      
-        // check for player death -- on death build RIP message
-        if (_player.HP <= 0)
-        {
-                
-        }*/
-    }
+        //foreach (Item item in _items)
+        //{
 
+        //}
+        // check for player death -- on death build RIP message
+        //if (_player.HP <= 0)
+        //{
+
+        //}
+        
+    }
     public override void Draw(IRenderWindow? disp)
     {
         var tilesToDraw = new TileSet(_decor);
@@ -118,100 +160,65 @@ public class Level : Scene
         tilesToDraw.UnionWith(_inFov);
 
         disp.fDraw(tilesToDraw, _map, ConsoleColor.Gray);
-
+        // disp.Draw(_player!.Glyph, _player!.Pos, ConsoleColor.Cyan);
         var rng = new Random();
         if (_player.Turn % 5 == 0)
             _player._color = (ConsoleColor)rng.Next(10, 16);
+
         _player!.Draw(disp);
-        // disp.Draw(_player!.Glyph, _player!.Pos, ConsoleColor.Cyan);
 
         drawItems(disp);
-        drawEnemies(disp);
+        DrawEnemies(disp);
+        // draw only items that are currently in the player's field-of-view
         disp.Draw(_player.HUD, new Vector2(0, 24), ConsoleColor.Green);
     }
 
     public override void DoCommand(Command command)
     {
-        // player ctl  
-        if (command.Name == "up")
-        {
-            MovePlayer(Vector2.N);
-        }
-        else if (command.Name == "down")
-        {
-            MovePlayer(Vector2.S);
-        }
-        else if (command.Name == "left")
-        {
-            MovePlayer(Vector2.W);
-        }
-        else if (command.Name == "right")
-        {
-            MovePlayer(Vector2.E);
-        }
+        // player ctl 
+        if (command.Name == "up") MovePlayer(Vector2.N);
+        else if (command.Name == "down") MovePlayer(Vector2.S);
+        else if (command.Name == "left") MovePlayer(Vector2.W);
+        else if (command.Name == "right") MovePlayer(Vector2.E);
         else if (command.Name == "inventory")
         {
-            try
-            {
-                _player?.ShowInventory();
-            }
-            catch { }
+            try { _player?.ShowInventory(); } catch { }
         }
         else if (command.Name == "quit")
         {
-            // -----------------------------------------------------------------------
-            // save and exit to menu
-            try
-            {
-                AnsiConsole.Clear();
-                Console.SetCursorPosition(0, 0);
-            }
-            catch { }
+  // -----------------------------------------------------------------------
+  // save and exit to menu
+  // -------------------------------------------------------------------------
+            try { AnsiConsole.Clear(); Console.SetCursorPosition(0, 0); } catch { }
 
             Console.Write("Save before returning to menu? (y/n): ");
             var key = Console.ReadKey(true);
-            if (key.Key == ConsoleKey.Y)
+
+            if (key.Key == ConsoleKey.Y && _game is MyGame mg)
             {
-                if (_game is MyGame mg)
-                {
-                    try
-                    {
-                        mg.SaveToFile("save.json");
-                        Console.WriteLine(" Saved.");
-                    }
-                    catch (Exception)
-                    {
-                        Console.WriteLine(" Save failed.");
-                    }
-                }
+                try { mg.SaveToFile("save.json"); Console.WriteLine(" Saved."); }
+                catch { Console.WriteLine(" Save failed."); }
             }
             else if (key.Key == ConsoleKey.N)
             {
                 Console.Write("file not saved.");
             }
+
             try { Console.SetCursorPosition(0, 0); } catch { }
             _levelActive = false;
         }
     }
 
-    // -------------------------------------------------------------------------
-
     private void drawItems(IRenderWindow disp)
     {
-        // draw only items that are currently in the player's field-of-view
         if (_inFov is null) return;
+
         foreach (var item in _items.Where(it => _inFov.Contains(it.Pos)))
-        {
             item.Draw(disp);
-        }
     }
-
-    private void drawEnemies(IRenderWindow disp) { }
-
+   
     private void initMapTileSets(string map)
     {
-        var lines = map.Split('\n');
-
         // ------ rules for map ------
         // . - floor, walkable and transparent.
         // + - door, walkable and transparent // # - tunnel, walkable and transparent
@@ -219,6 +226,7 @@ public class Level : Scene
         // '|' - wall, not walkable, not transparent, but discoverable.'
         //  others are treated the same as wall.
         // tunnel, wall, and doorways are decor, once discovered they are visible.
+        var lines = map.Split('\n');
 
         _floor = new TileSet();
         _tunnel = new TileSet();
@@ -234,7 +242,6 @@ public class Level : Scene
         }
 
         _walkables = _floor.Union(_tunnel).Union(_door).ToHashSet();
-
         //      for (int row = 0; row < lines.Length; ++row) {
         //         for (int col = 0; col < lines[row].Length; ++col) {
         //            char tile = lines[row][col];
@@ -249,10 +256,26 @@ public class Level : Scene
         //      }
     }
 
+    private Item? GetItemAt(Vector2 pos)
+        => _items.FirstOrDefault(i => i.Pos.Equals(pos));
+
+    private void RemoveItem(Item item)
+        => _items.Remove(item);
     // ------------------------------------------------------
     // Commands 
     // ------------------------------------------------------
+    public void HandlePlayerMove(Player player, Vector2 newPos)
+    {
+        player.Pos = newPos;
 
+        var item = GetItemAt(newPos);
+        if (item != null)
+        {
+            player.Inventory.Add(item);
+            RemoveItem(item);
+            AnsiConsole.MarkupLine($"[yellow]Picked up {item.Name}![/]");
+        }
+    }
 
     private void registerCommandsWithScene()
     {
@@ -273,46 +296,57 @@ public class Level : Scene
         RegisterCommand(ConsoleKey.L, "right");
 
         RegisterCommand(ConsoleKey.Q, "quit");
-      RegisterCommand(ConsoleKey.I, "inventory");
+        RegisterCommand(ConsoleKey.I, "inventory");
     }
-
 
     public void MovePlayer(Vector2 delta)
     {
         var newPos = _player!.Pos + delta;
 
+        var enemy = _npcsList.FirstOrDefault(n => n.Pos.Equals(newPos));
+        if (enemy != null)
+        {
+            enemy.TakeDamage(_player.Strength);
+            Console.WriteLine($"You hit the {enemy.Name}!");
+
+            if (enemy.HP <= 0)
+            {
+                Console.WriteLine($"{enemy.Name} dies!");
+                _npcsList.Remove(enemy);
+                _player.AddExp(5);
+            }
+
+            return;
+        }
+
         if (_walkables.Contains(newPos))
         {
             var oldPos = _player!.Pos;
             _player!.Pos = newPos;
-            _walkables.Remove(newPos); // new tile is now occupied
-            _walkables.Add(oldPos);    // old tile is now free
+            _walkables.Remove(newPos);// new tile is now occupied
+            _walkables.Add(oldPos);// old tile is now free
             updateDiscovered();
-
             // check for items at the new position and pick them up
             var item = _items.FirstOrDefault(it => it.Pos.Equals(newPos));
             if (item != null)
             {
-                if (item is RougeLikeGame.Levels.Gold g)
+                // add item to player's inventorys
+                if (item is Gold g) 
                 {
-                    _player!.AddGold(g.Amount);
+                    _player!.AddGold(g.Amount);  
                     _items.Remove(item);
-                    try { Console.SetCursorPosition(0, 23); } catch { }
                     Console.WriteLine($"Picked up {g.Amount} gold.");
                 }
                 else if (item is XP xp)
                 {
                     _player!.AddExp(xp.Amount);
                     _items.Remove(item);
-                    try { Console.SetCursorPosition(0, 23); } catch { }
                     Console.WriteLine($"Picked up {xp.Amount} XP.");
                 }
                 else
                 {
-                    // add item to player's inventorys
                     _player!.Add(item);
                     _items.Remove(item);
-                    try { Console.SetCursorPosition(0, 23); } catch { }
                     Console.WriteLine($"Picked up {item.Name}.");
                 }
             }
