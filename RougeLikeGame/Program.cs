@@ -22,7 +22,7 @@ class Program
 
         while (isRunning)
         {
-            AnsiConsole.MarkupLine("[bold red]Welcome to the RogueLike Game![/]\n");
+            AnsiConsole.MarkupLine("[bold red]Welcome to the DungeonClawer Game![/]\n");
             string userChoice = AnsiConsole.Prompt(new SelectionPrompt<string>()
                                 .Title("\nMain menu:")
                                 .AddChoices(

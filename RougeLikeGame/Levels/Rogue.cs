@@ -1,10 +1,12 @@
 
 
+using RogueLib.Dungeon;
+
 namespace RogueLib.Utilities;
 public abstract class RogueClass : Player {
     public string ClassName { get; }
     public string Description { get; }
-
+    protected int _selectedIndex;
     protected RogueClass(string name, string description, int hp, int str, int arm)
       : base(name, name)
     {
@@ -18,7 +20,109 @@ public abstract class RogueClass : Player {
         _arm = arm;
         Name = name;
     }
+    public void Add(Item item)
+    {
+        if (item == null) return;
+        _inventory.Add(item);
+    }
 
+    protected readonly Inventory _inventory = new Inventory();
+    public bool Remove(Item item) => _inventory.Remove(item);
+    public Inventory Inventory => _inventory;
+    public IReadOnlyList<Item> Items => _inventory.Items;
+    protected void FadeOutInventory(int start)
+    {
+        for (int opacity = 0; opacity < 3; opacity++)
+        {
+            for (int row = start; row <= start + 14; row++)
+            {
+                Console.SetCursorPosition(0, row);
+                Console.Write(new string(' ', Console.WindowWidth));
+            }
+            Thread.Sleep(30);
+        }
+    }
+    public void ShowInventory()
+    {
+        int start = 5;
+        ConsoleKey key;
+
+        do
+        {
+            DrawInventoryWindow(start);
+
+            key = Console.ReadKey(true).Key;
+
+            if (key == ConsoleKey.UpArrow && _selectedIndex > 0)
+                _selectedIndex--;
+            if (key == ConsoleKey.DownArrow && _selectedIndex < Items.Count - 1)
+                _selectedIndex++;
+
+            if (key == ConsoleKey.Enter && Items.Count > 0)
+            {
+                // Example action — you can expand this later
+                Console.SetCursorPosition(0, start + 16);
+                Console.WriteLine($"You selected: {Items[_selectedIndex].Name}");
+                Console.ReadKey(true);
+            }
+
+        } while (key != ConsoleKey.Escape);
+        FadeOutInventory(start);
+    }
+    protected void DrawInventoryWindow(int start)
+    {
+
+        for (int row = start; row <= start + 14; row++)
+        {
+            Console.SetCursorPosition(0, row);
+            Console.Write(new string(' ', Console.WindowWidth));
+        }
+
+        Console.SetCursorPosition(0, start);
+        Console.WriteLine("┌──────────────────────────────────────────┐");
+        Console.SetCursorPosition(0, start + 1);
+        Console.WriteLine("│              === INVENTORY ===           │");
+        Console.WriteLine("│                                          │");
+        int line = start + 3;
+
+        if (Items.Count == 0)
+        {
+            Console.SetCursorPosition(0, line);
+            Console.WriteLine("│                 (empty)                  │");
+            line++;
+        }
+        else
+        {
+            for (int i = 0; i < Items.Count; i++)
+            {
+                Console.SetCursorPosition(0, line);
+
+                bool selected = (i == _selectedIndex);
+
+                if (selected)
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+
+                Console.WriteLine($"│ {(selected ? ">" : " ")} {Items[i].Name,-18} {Items[i].Description,-19} │");
+
+                Console.ResetColor();
+                line++;
+            }
+        }
+
+        while (line < start + 14)
+        {
+            Console.SetCursorPosition(0, line);
+            Console.WriteLine("│                                          │");
+            line++;
+        }
+
+        Console.SetCursorPosition(0, start + 14);
+        Console.WriteLine("└──────────────────────────────────────────┘");
+
+        Console.SetCursorPosition(0, start + 16);
+        Console.WriteLine("Use ↑ ↓ to navigate, Enter to select, Esc to exit.");
+
+    }
 
     public override string ToString() => $"{ClassName}: {Description} (HP:{_hp}, Str:{_str}, Arm:{_arm})";
 }

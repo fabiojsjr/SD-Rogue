@@ -20,7 +20,7 @@ public abstract class Player : IActor, IDrawable
     protected int _maxHp = 12;
     protected int _maxStr = 16;
     protected int _turn = 0;
-    private int _selectedIndex;
+ 
 
     public int Turn => _turn;
     public Player(string name, string className)
@@ -80,7 +80,7 @@ public abstract class Player : IActor, IDrawable
     {
         disp.Draw(Glyph, Pos, _color);
     }
-    public void TakeDamage(int damage)
+    public virtual void TakeDamage(int damage)
     {
         int effectiveDamage = Math.Max(0, damage - _arm);
         _hp -= effectiveDamage;
@@ -91,94 +91,12 @@ public abstract class Player : IActor, IDrawable
         }
     }
 
-    private readonly Inventory _inventory = new Inventory();
 
-    public void Add(Item item)
-    {
-        if (item == null) return;
-        _inventory.Add(item);
-    }
-
-    public bool Remove(Item item) => _inventory.Remove(item);
-
-    public IReadOnlyList<Item> Items => _inventory.Items;
+ 
     public string? RogueClass { get; set; }
     public int Strength => _str;
-    public Inventory Inventory => _inventory;
-    public void ShowInventory()
-    {
-        int start = 5;
-        ConsoleKey key;
 
-        do
-        {
-            DrawInventoryWindow(start);
+   
 
-            key = Console.ReadKey(true).Key;
-
-            if (key == ConsoleKey.UpArrow && _selectedIndex > 0)
-                _selectedIndex--;
-
-            if (key == ConsoleKey.DownArrow && _selectedIndex < Items.Count - 1)
-                _selectedIndex--;
-
-            if (key == ConsoleKey.DownArrow && _selectedIndex < Items.Count - 1)
-                _selectedIndex++;
-
-            if (key == ConsoleKey.Enter && Items.Count > 0)
-            {
-                // Example action — you can expand this later
-                Console.SetCursorPosition(0, start + 16);
-                Console.WriteLine($"You selected: {Items[_selectedIndex].Name}");
-                Console.ReadKey(true);
-            }
-
-        } while (key != ConsoleKey.Escape);
-    }
-    private void DrawInventoryWindow(int start)
-    {
-        Console.SetCursorPosition(0, start);
-        Console.WriteLine("┌──────────────────────────────────────────┐");
-        Console.SetCursorPosition(0, start + 1);
-        Console.WriteLine("│              === INVENTORY ===           │");
-
-        int line = start + 3;
-
-        if (Items.Count == 0)
-        {
-            Console.SetCursorPosition(0, line);
-            Console.WriteLine("│                 (empty)                  │");
-            line++;
-        }
-        else
-        {
-            for (int i = 0; i < Items.Count; i++)
-            {
-                Console.SetCursorPosition(0, line);
-
-                bool selected = (i == _selectedIndex);
-
-                if (selected)
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-
-                Console.WriteLine($"│ {(selected ? ">" : " ")} {Items[i].Name,-20} {Items[i].Description,-15} │");
-
-                Console.ResetColor();
-                line++;
-            }
-        }
-
-        while (line < start + 14)
-        {
-            Console.SetCursorPosition(0, line);
-            Console.WriteLine("│                                          │");
-            line++;
-        }
-
-        Console.SetCursorPosition(0, start + 14);
-        Console.WriteLine("└──────────────────────────────────────────┘");
-
-        Console.SetCursorPosition(0, start + 16);
-        Console.WriteLine("Use ↑ ↓ to navigate, Enter to select, Esc to exit.");
-    }
+ 
 }

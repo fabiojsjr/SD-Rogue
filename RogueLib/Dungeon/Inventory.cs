@@ -5,7 +5,7 @@ namespace RogueLib.Dungeon
     public class Inventory
     {
         private readonly List<Item> _items = new List<Item>();
-
+        private Dictionary<string, int> inventory;
         public void Add(Item item)
         {
             if (item == null) return;
@@ -14,5 +14,10 @@ namespace RogueLib.Dungeon
         public bool Remove(Item item) => _items.Remove(item);
 
         public IReadOnlyList<Item> Items => _items.AsReadOnly();
+        class InventoryItem
+        {
+            public Item Item;
+            public int Quantity;
+        }
     }
 }

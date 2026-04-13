@@ -50,9 +50,9 @@ public class Game {
          _currentLevel!.Update();
       }
    }
+    //private class CommandQueue<T> {}
 
-
-   protected virtual void HandleUserInput() {
+    protected virtual void HandleUserInput() {
         if (_currentLevel == null)
             return;
         ConsoleKeyInfo key = Console.ReadKey(true);

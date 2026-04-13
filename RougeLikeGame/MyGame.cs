@@ -30,10 +30,8 @@ public class MyGame : Game
         _window = new ScreenBuff();
         if (chosenPlayer != null)
             _player = chosenPlayer;
-        while (true)
-            HandleUserInput();
-        _currentLevel = new Level(_player!, map1, this);
-
+        _currentLevel = new Level(_player!, map1, this, _window!);
+        run();
     }
 
     public MyGame()
@@ -85,7 +83,7 @@ public class MyGame : Game
     // ----------------------------------------------------------------
     // string to use as the backgound on our first level
     // ----------------------------------------------------------------
-
+    public const string blanks = "";//
     public const string map1 =
        """
 

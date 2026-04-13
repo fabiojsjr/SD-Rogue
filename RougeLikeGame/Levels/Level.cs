@@ -80,7 +80,7 @@ public class Level : Scene
 
     private void ClearInventoryPanel()//helper method 4
     {
-        for (int row = 5; row <= 20; row++)
+        for (int row = 5; row <= 22; row++)
         {
             Console.SetCursorPosition(0, row);
             Console.Write(new string(' ', Console.WindowWidth));
@@ -97,6 +97,37 @@ public class Level : Scene
     //        i++;
     //    }
     //}
+    private void FadeOutGame(IRenderWindow window)
+    {
+        // 3 fade steps
+        for (int step = 0; step < 3; step++)
+        {
+            // Clear the entire back buffer
+            for (int y = 0; y < window.Height; y++)
+            {
+                for (int x = 0; x < window.Width; x++)
+                {
+                    window.Draw(' ', new Vector2(x, y), ConsoleColor.Black);
+                }
+            }
+
+            window.Display();
+            Thread.Sleep(40);
+        }
+    }
+    private void FadeInGame(IRenderWindow window)
+    {
+        // Draw the game normally first
+        Draw(window);
+
+        // 3 fade steps
+        for (int step = 0; step < 3; step++)
+        {
+            window.Display();
+            Thread.Sleep(40);
+        }
+    }
+
     private void AddMessage(string msg)//helper method 3
     {
         if (_messageLog.Count >= MaxMessages)
@@ -240,8 +271,16 @@ public class Level : Scene
         else if (command.Name == "inventory")
         {
             _player?.ShowInventory();
-            ClearInventoryPanel();
+            var bpage = "";
+            for (int i = 0; i < 25; ++i)
+                bpage += new string(' ', 78) + "\n";
+            ClearMessageLine();
+            FadeOutGame(_game.Window);
+            updateDiscovered();
+            FadeInGame(_game.Window);
+            _game.Window.Draw(bpage, Console.ForegroundColor);
             Draw(_game.Window);
+            _game.Window.Display();
         }
         else if (command.Name == "quit")
         {
@@ -267,6 +306,7 @@ public class Level : Scene
             _levelActive = false;
         }
     }
+
     private void drawItems(IRenderWindow disp)
     {
         if (_inFov is null) return;
