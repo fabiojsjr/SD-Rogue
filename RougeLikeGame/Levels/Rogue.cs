@@ -158,7 +158,7 @@ public abstract class RogueClass : Player {
                 Console.ResetColor();
 
                 // draw rest
-                Console.WriteLine($" {item.Name} x{item.Count,-14} {item.Description,-19} │");
+                Console.WriteLine($" {item.Name} x{item.Count,-14} {item.Description,-15} │");
 
                 Console.ResetColor();
                 line++;
