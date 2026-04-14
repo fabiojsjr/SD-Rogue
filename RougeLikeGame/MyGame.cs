@@ -16,9 +16,9 @@ public class MyGame : Game
 
     public MyGame(Player p)
     {
-        init(p);
+        Init(p);
     }
-    private void init(Player? chosenPlayer = null)
+    private void Init(Player? chosenPlayer = null)
     {
         // To create a new game just need to 
         // 'inject' an IRenderWindow to draw the game one
@@ -36,7 +36,7 @@ public class MyGame : Game
 
     public MyGame()
     {
-        init();
+        Init();
     }
     //public void ShowInventory()
     //{
@@ -65,6 +65,7 @@ public class MyGame : Game
     //}
     private record GameDTO
     {
+        public bool IsConsumable { get; set; }
         public string PlayerName { get; init; }
         public int PlayerGold { get; init; }
         public int PlayerXP { get; init; }

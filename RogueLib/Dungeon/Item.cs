@@ -13,30 +13,18 @@ public abstract class Item : IDrawable {
 
     protected char _glyph;
     protected ConsoleColor _color;
-
-    public Item(char gly, Vector2 pos, ConsoleColor color = ConsoleColor.Yellow) {
+    private char glyph;
+    public ConsoleColor Color => _color;
+    protected Item(Vector2 pos, char glyph, ConsoleColor color)
+    {
+        Pos = pos;
+        _glyph = glyph;
         _color = color;
-        _glyph = gly;
-        Pos = pos;
     }
 
-    protected Item(string gold, string xp, Vector2 pos = default)
+    public virtual void Use(Player player)
     {
-        Pos = pos;
-    }
-
-    protected Item(char gly, string xp, Vector2 pos, ConsoleColor color = ConsoleColor.Green) 
-    {
-        _color = color;
-        _glyph = gly;
-        Pos = pos;
-    }
-
-    protected Item(char v, System.Numerics.Vector2 pos, ConsoleColor green)
-    {
-        V = v;
-        Pos1 = pos;
-        Green = green;
+        // default: do nothing
     }
 
     public virtual string Name => GetType().Name;
@@ -59,7 +47,7 @@ public abstract class Item : IDrawable {
         };
     }
 
-    public void Draw(IRenderWindow disp) {
-        disp.Draw(_glyph, Pos, _color);
+    public virtual void Draw(IRenderWindow disp) {
+        disp.Draw(Glyph, Pos, _color);
     }
 }

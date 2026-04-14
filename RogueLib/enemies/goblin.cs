@@ -15,9 +15,17 @@ namespace RogueLib.enemies
             Health = health;
         }
 
-        public void TakeDamage(int damage)
+        public new void TakeDamage(int damage)
         {
             Health -= damage;
+        }
+        public override void Update()
+        {
+            if ((PlayerRef.Pos - Pos).RookLength == 1)
+            {
+                PlayerRef.TakeDamage(3);
+                return;
+            }
         }
     }
 }

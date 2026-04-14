@@ -6,8 +6,10 @@ using RougeLikeGame.Levels;
 
 namespace RougeLikeGame.Levels
 {
-    public class Gold(Vector2 pos, int amount) : Item('*', pos, ConsoleColor.Yellow) {
+    public class Gold(Vector2 pos, int amount) : Item(pos, '*', ConsoleColor.Yellow)
+    {
         private readonly int _amount = amount;
+    
 
         public int Amount => _amount;
         public override string Name => "Gold";

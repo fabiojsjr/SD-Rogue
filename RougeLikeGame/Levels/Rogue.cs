@@ -1,5 +1,7 @@
 
 using RogueLib.Dungeon;
+using RogueLib.Engine;
+using System.Text.RegularExpressions;
 
 namespace RogueLib.Utilities;
 public abstract class RogueClass : Player {
@@ -19,7 +21,20 @@ public abstract class RogueClass : Player {
         _arm = arm;
         Name = name;
     }
-    public void Add(Item item)
+    private List<(string Name, int Count, string Description, char Glyph, ConsoleColor Color)> GetGroupedItems()
+    {
+        return Items
+       .GroupBy(i => i.Name)
+       .Select(g => (
+           Name: g.Key,
+           Count: g.Count(),
+           Description: g.First().Description,
+           Glyph: g.First().Glyph,
+           Color: g.First().Color
+       ))
+       .ToList();
+    }
+    public override void Add(Item item)
     {
         if (item == null) return;
         _inventory.Add(item);
@@ -45,26 +60,41 @@ public abstract class RogueClass : Player {
     {
         int start = 5;
         ConsoleKey key;
-
+        var grouped = GetGroupedItems();
+        var selected = grouped[_selectedIndex];
         do
         {
             DrawInventoryWindow(start);
-
+            // find ONE matching item in real inventory
+            var item = Items.FirstOrDefault(i => i.Name == selected.Name);
+            if (item != null)
+            {
+                item.Use(this);// use it    
+                Remove(item);// remove ONE instance
+            }
+            if (item == null)
+            {
+                Console.SetCursorPosition(0, 23);
+                Console.Write("Item not found!");
+                Console.ReadKey(true);
+                return;
+            }
             key = Console.ReadKey(true).Key;
 
             if (key == ConsoleKey.UpArrow && _selectedIndex > 0)
                 _selectedIndex--;
-            if (key == ConsoleKey.DownArrow && _selectedIndex < Items.Count - 1)
-                _selectedIndex++;
+            if (key == ConsoleKey.DownArrow && _selectedIndex < grouped.Count - 1)
 
             if (key == ConsoleKey.Enter && Items.Count > 0)
             {
                 // Example action — you can expand this later
                 Console.SetCursorPosition(0, start + 16);
-                Console.WriteLine($"You selected: {Items[_selectedIndex].Name}");
+                Console.WriteLine($"You selected: {grouped[_selectedIndex].Name}");
+                item.Use(this);
+                Remove(item);
                 Console.ReadKey(true);
             }
-
+              
         } while (key != ConsoleKey.Escape);
         FadeOutInventory(start);
     }
@@ -92,16 +122,43 @@ public abstract class RogueClass : Player {
         }
         else
         {
-            for (int i = 0; i < Items.Count; i++)
+            var grouped = Items
+             .GroupBy(i => i.Name)
+             .Select(g => new {
+              Name = g.Key,
+              Count = g.Count(),
+              Description = g.First().Description,
+              Glyph = g.First().Glyph,
+              Color = g.First().Color
+             })
+      .ToList();
+
+            for (int i = 0; i < grouped.Count; i++)
             {
                 Console.SetCursorPosition(0, line);
 
                 bool selected = (i == _selectedIndex);
 
-                if (selected)
-                    Console.ForegroundColor = ConsoleColor.Yellow;
+                var item = grouped[i];
 
-                Console.WriteLine($"│ {(selected ? ">" : " ")} {Items[i].Name,-18} {Items[i].Description,-19} │");
+                // icon color
+                if(selected)
+                Console.ForegroundColor = item.Color;
+
+                string icon = item.Glyph.ToString();
+
+                // reset for text
+                Console.ResetColor();
+
+                Console.Write($"│ {(selected ? ">" : " ")} ");
+
+                // draw icon
+                Console.ForegroundColor = item.Color;
+                Console.Write(icon);
+                Console.ResetColor();
+
+                // draw rest
+                Console.WriteLine($" {item.Name} x{item.Count,-14} {item.Description,-19} │");
 
                 Console.ResetColor();
                 line++;

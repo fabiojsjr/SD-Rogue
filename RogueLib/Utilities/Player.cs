@@ -11,6 +11,12 @@ public abstract class Player : IActor, IDrawable
     public string Glyph => "☺";
     public ConsoleColor _color = ConsoleColor.White;
 
+    private int _buffTurns = 0;
+    private int _buffStrength = 0;
+    protected int _mana;
+    protected int _maxMana = 20;
+    public int Mana => _mana;
+    public int MaxMana => _maxMana;
     protected int _level = 0;
     protected int _hp = 12;
     protected int _str = 16;
@@ -28,9 +34,12 @@ public abstract class Player : IActor, IDrawable
         Name = name;
         RogueClass = className;
         Pos = Vector2.Zero;
+        _mana = _maxMana;
     }
+
     public string HUD =>
        $" Class: {RogueClass}  Level:{_level}  Gold: {_gold}    Hp: {_hp}({_maxHp})" +
+        $" MP: {_mana}/{_maxMana} "+
        $"  Str: {_str}({_maxStr})" +
        $"  Arm: {_arm}   Exp: {_exp}/{10} Turn: {_turn}";
 
@@ -72,9 +81,40 @@ public abstract class Player : IActor, IDrawable
         _hp = _maxHp;
         _str = _maxStr;
     }
+    public void Heal(int amount)
+    {
+        _hp += amount;
+        if (_hp > _maxHp)
+            _hp = _maxHp;
+    }
+    public void RestoreMana(int amount)
+    {
+        _mana += amount;
+        if (_mana > _maxMana)
+            _mana = _maxMana;
+    }
+    public void ApplyStrengthBuff(int amount, int turns)
+    {
+        _buffStrength += amount;
+        _buffTurns = turns;
+
+        Console.SetCursorPosition(0, 23);
+        Console.Write($"Strength increased by {amount} for {turns} turns!");
+    }
     public virtual void Update()
     {
         _turn++;
+        if (_buffTurns > 0)
+        {
+            _buffTurns--;
+            if (_buffTurns == 0)
+            {
+                _buffStrength = 0;
+
+                Console.SetCursorPosition(0, 23);
+                Console.Write("Buff wore off.");
+            }
+        }
     }
     public virtual void Draw(IRenderWindow disp)
     {
@@ -84,19 +124,23 @@ public abstract class Player : IActor, IDrawable
     {
         int effectiveDamage = Math.Max(0, damage - _arm);
         _hp -= effectiveDamage;
+        Console.SetCursorPosition(0, 23);
+        Console.Write($"You took {damage} damage!");
+
         if (_hp <= 0)
         {
-            _hp = 0;
-            // Handle player death (e.g., trigger game over)
+            Console.SetCursorPosition(0, 23);
+            Console.Write("You died!");
         }
     }
 
     public abstract void ShowInventory();
+    public abstract void Add(Item item);
 
     public string? RogueClass { get; set; }
-    public int Strength => _str;
+    public int Strength => _str + _buffStrength;
 
-   
 
- 
+
+
 }

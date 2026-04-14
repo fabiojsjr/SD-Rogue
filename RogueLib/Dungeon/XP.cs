@@ -7,7 +7,7 @@ namespace RogueLib.Dungeon
     {
         private readonly int _amount;
 
-        public XP(Vector2 pos, int amount) : base('₤', pos, ConsoleColor.Green)
+        public XP(Vector2 pos, int amount) : base(pos, '₤', ConsoleColor.Green)
         {
             _amount = amount;
         }

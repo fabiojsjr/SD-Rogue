@@ -5,9 +5,11 @@ using RogueLib.Utilities;
 using RougeLikeGame.Levels;
 using SandBox01;
 using Spectre.Console;
-using TileSet = System.Collections.Generic.HashSet<RogueLib.Utilities.Vector2>;
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
+using TileSet = System.Collections.Generic.HashSet<RogueLib.Utilities.Vector2>;
+using Vector2 = RogueLib.Utilities.Vector2;
 namespace RlGameNS;
 // -----------------------------------------------------------------------
 // The Level is the model, all the game world objects live in the model. 
@@ -31,6 +33,7 @@ public class Level : Scene
     protected string? _map;
     protected int _senseRadius = 4;
     private readonly Queue<string> _messageLog = new Queue<string>();
+    private readonly ConsoleKey key;
     private const int MaxMessages = 5;
     // --- Tile Sets ----- 
     protected TileSet _walkables; // used to keep track of state of tiles on the map
@@ -49,6 +52,7 @@ public class Level : Scene
 
     public string Map1 { get; }
     public MyGame MyGame { get; }
+    public Vector2 pos { get; private set; }
 
     public Level(RogueLib.Utilities.Player p, string map, Game game, IRenderWindow window)
     {
@@ -62,8 +66,8 @@ public class Level : Scene
         _items = new List<Item>();
         _inFov = new TileSet();
         initMapTileSets(map);
-        updateDiscovered();
-        registerCommandsWithScene();
+        UpdateDiscovered();
+        RegisterCommandsWithScene();
         SpreadTheGold();
         SpreadTheXP();
         SpreadTheItems();
@@ -98,7 +102,7 @@ public class Level : Scene
     //        i++;
     //    }
     //}
-    private void FadeOutGame(IRenderWindow window)
+    private static void FadeOutGame(IRenderWindow window)
     {
         // 3 fade steps
         for (int step = 0; step < 3; step++)
@@ -136,7 +140,7 @@ public class Level : Scene
 
         _messageLog.Enqueue(msg);
     }
-    private void ClearMessageLine()//helper method 1
+    private static void ClearMessageLine()//helper method 1
     {
         Console.SetCursorPosition(0, 23);
         Console.Write(new string(' ', Console.WindowWidth));
@@ -169,7 +173,16 @@ public class Level : Scene
         for (int i = 0; i < howMuch; i++)
         {
             var pos = _floor.ElementAt(rng.Next(_floor.Count));
-            _items.Add(new Potion(pos, "Health Potion", '!', ConsoleColor.Red));
+
+            double roll = rng.NextDouble();
+
+            if (roll < 0.4)
+                _items.Add(new Potion(pos, "Health Potion", '!', ConsoleColor.Red));
+            else if (roll < 0.7)
+                _items.Add(new ManaPotion(pos, 10));
+            else
+                _items.Add(new StrengthPotion(pos));
+
         }
     }
 
@@ -211,7 +224,7 @@ public class Level : Scene
         }
     }
 
-    protected void updateDiscovered()
+    protected void UpdateDiscovered()
     {
         _inFov = fovCalc(_player!.Pos, _senseRadius);
         if (_discovered is null)
@@ -260,6 +273,7 @@ public class Level : Scene
             DrawEnemies(disp);
         // draw only items that are currently in the player's field-of-view
         disp.Draw(_player.HUD, new Vector2(0, 24), ConsoleColor.Green);
+       
     }
 
     public override void DoCommand(Command command)
@@ -270,14 +284,14 @@ public class Level : Scene
         else if (command.Name == "left") MovePlayer(Vector2.W);
         else if (command.Name == "right") MovePlayer(Vector2.E);
         else if (command.Name == "inventory")
-        {
-            _player?.ShowInventory();
+        {         
+            _player.ShowInventory();
             var bpage = "";
             for (int i = 0; i < 25; ++i)
                 bpage += new string(' ', 78) + "\n";
             ClearMessageLine();
             FadeOutGame(_game.Window);
-            updateDiscovered();
+            UpdateDiscovered();
             FadeInGame(_game.Window);
             _game.Window.Draw(bpage, Console.ForegroundColor);
             Draw(_game.Window);
@@ -306,14 +320,17 @@ public class Level : Scene
             try { Console.SetCursorPosition(0, 0); } catch { }
             _levelActive = false;
         }
+    
     }
 
     private void drawItems(IRenderWindow disp)
     {
+
         if (_inFov is null) return;
 
         foreach (var item in _items.Where(it => _inFov.Contains(it.Pos)))
             item.Draw(disp);
+
     }   
     private void initMapTileSets(string map)
     {
@@ -368,14 +385,14 @@ public class Level : Scene
         var item = GetItemAt(newPos);
         if (item != null)
         {
-            player.ShowInventory();
+            player.Add(item);
             RemoveItem(item);
             ClearMessageLine();
             PrintMessage($"Picked up {item.Name}!");
         }
     }
 
-    private void registerCommandsWithScene()
+    private void RegisterCommandsWithScene()
     {
         RegisterCommand(ConsoleKey.UpArrow, "up");
         RegisterCommand(ConsoleKey.W, "up");
@@ -404,7 +421,7 @@ public class Level : Scene
         var enemy = _npcsList.FirstOrDefault(n => n.Pos.Equals(newPos));
         if (enemy != null)
         {
-            enemy.TakeDamage(_player.Strength);
+            enemy.TakeDamage(dmg: _player.Strength);
             ClearMessageLine();
             PrintMessage($"You hit the {enemy.Name}!");
 
@@ -425,7 +442,7 @@ public class Level : Scene
             _player!.Pos = newPos;
             _walkables.Remove(newPos);// new tile is now occupied
             _walkables.Add(oldPos);// old tile is now free
-            updateDiscovered();
+            UpdateDiscovered();
             // check for items at the new position and pick them up
             var item = _items.FirstOrDefault(it => it.Pos.Equals(newPos));
             if (item != null)
@@ -445,7 +462,7 @@ public class Level : Scene
                 }
                 else
                 {
-                    _player!.ShowInventory();
+                    _player!.Add(item); 
                     _items.Remove(item);
                     PrintMessage($"Picked up {item.Name}.");
                 }
