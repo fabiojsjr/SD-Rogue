@@ -301,11 +301,11 @@ public class Level : Scene
             if (key.Key == ConsoleKey.Y && _game is MyGame mg)
             {
                 try { mg.SaveToFile("save.json"); Console.WriteLine(" Saved."); }
-                catch { Console.WriteLine(" Save failed."); }
+                catch { Console.WriteLine(" \nSave failed."); }
             }
             else if (key.Key == ConsoleKey.N)
             {
-                Console.Write("file not saved.");
+                Console.Write("\nfile not saved.");
             }
 
             try { Console.SetCursorPosition(0, 0); } catch { }

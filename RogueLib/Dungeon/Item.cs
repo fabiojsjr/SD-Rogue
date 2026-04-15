@@ -1,41 +1,40 @@
 ﻿using RogueLib.Utilities;
 using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Text;
 
 namespace RogueLib.Dungeon;
 
-public abstract class Item : IDrawable {
-
+public abstract class Item : IDrawable
+{
     public Vector2 Pos { get; set; }
+
+    // The actual glyph used for drawing
     public string Glyph { get; }
 
     protected char _glyph;
     protected ConsoleColor _color;
-    private char glyph;
-    private string v;
 
     public ConsoleColor Color => _color;
+
+    // --- VALID CONSTRUCTORS ---
+
+    // 1) Char‑based glyph
     protected Item(Vector2 pos, char glyph, ConsoleColor color)
     {
         Pos = pos;
         _glyph = glyph;
         _color = color;
+        Glyph = glyph.ToString();
     }
 
-    protected Item(Vector2 pos, string v, ConsoleColor color)
+    // 2) String‑based glyph
+    protected Item(Vector2 pos, string glyph, ConsoleColor color)
     {
         Pos = pos;
-        V1 = v;
-        Color1 = color;
+        Glyph = glyph;
+        _color = color;
     }
 
-    protected Item(Vector2 pos, string v)
-    {
-        Pos = pos;
-        this.v = v;
-    }
+    // --- DEFAULT BEHAVIOR ---
 
     public virtual void Use(Player player)
     {
@@ -45,17 +44,17 @@ public abstract class Item : IDrawable {
     public virtual string Name => GetType().Name;
     public virtual string Description => string.Empty;
 
-    public char V { get; }
-    public System.Numerics.Vector2 Pos1 { get; }
-    public ConsoleColor Green { get; }
-    public string V1 { get; }
-    public ConsoleColor Color1 { get; }
+    // --- DTO SUPPORT ---
 
-    public class ItemDTO {
+    public class ItemDTO
+    {
         public string Type { get; set; } = "";
         public int Amount { get; set; }
     }
-    public virtual ItemDTO ToDTO() => new ItemDTO { Type = GetType().Name };
+
+    public virtual ItemDTO ToDTO() =>
+        new ItemDTO { Type = GetType().Name };
+
     public static Item? FromDTO(ItemDTO dto)
     {
         return dto.Type switch
@@ -64,16 +63,10 @@ public abstract class Item : IDrawable {
         };
     }
 
-    public virtual void Draw(IRenderWindow disp) {
-        var s = Glyph;
+    // --- DRAWING ---
 
-        if (s == null)
-        {
-            Console.SetCursorPosition(0, 22);
-            Console.WriteLine($"[DEBUG] Null glyph on item type: {GetType().Name}, Name: {Name}");
-            s = "?"; // fallback so it doesn't crash
-        }
-
-        disp.Draw(s, Pos, Color);
+    public virtual void Draw(IRenderWindow disp)
+    {
+        disp.Draw(Glyph, Pos, Color);
     }
 }
