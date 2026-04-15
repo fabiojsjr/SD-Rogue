@@ -21,18 +21,18 @@ public abstract class RogueClass : Player {
         _arm = arm;
         Name = name;
     }
-    private List<(string Name, int Count, string Description, char Glyph, ConsoleColor Color)> GetGroupedItems()
+    private List<(string Name, int Count, string Description, string Glyph, ConsoleColor Color)> GetGroupedItems()
     {
         return Items
-       .GroupBy(i => i.Name)
-       .Select(g => (
-           Name: g.Key,
-           Count: g.Count(),
-           Description: g.First().Description,
-           Glyph: g.First().Glyph,
-           Color: g.First().Color
-       ))
-       .ToList();
+            .GroupBy(i => i.Name)
+            .Select(g => (
+                Name: g.Key,
+                Count: g.Count(),
+                Description: g.First().Description,
+                Glyph: g.First().Glyph,   // now string
+                Color: g.First().Color
+            ))
+            .ToList();
     }
     public override void Add(Item item)
     {
@@ -60,47 +60,67 @@ public abstract class RogueClass : Player {
     {
         int start = 5;
         ConsoleKey key;
-        var grouped = GetGroupedItems();
-        var selected = grouped[_selectedIndex];
+
+        // Always rebuild grouped list each loop
         do
         {
-            DrawInventoryWindow(start);
-            // find ONE matching item in real inventory
-            var item = Items.FirstOrDefault(i => i.Name == selected.Name);
-            if (item != null)
+            var grouped = GetGroupedItems();
+
+            // If inventory is empty, show window and exit
+            if (grouped.Count == 0)
             {
-                item.Use(this);// use it    
-                Remove(item);// remove ONE instance
-            }
-            if (item == null)
-            {
-                Console.SetCursorPosition(0, 23);
-                Console.Write("Item not found!");
+                DrawInventoryWindow(start);
+                Console.SetCursorPosition(0, start + 16);
+                Console.WriteLine("Inventory empty.");
                 Console.ReadKey(true);
+                FadeOutInventory(start);
                 return;
             }
+
+            // Clamp index to avoid out-of-range
+            if (_selectedIndex >= grouped.Count)
+                _selectedIndex = grouped.Count - 1;
+
+            DrawInventoryWindow(start);
+
             key = Console.ReadKey(true).Key;
 
             if (key == ConsoleKey.UpArrow && _selectedIndex > 0)
                 _selectedIndex--;
-            if (key == ConsoleKey.DownArrow && _selectedIndex < grouped.Count - 1)
 
-            if (key == ConsoleKey.Enter && Items.Count > 0)
+            if (key == ConsoleKey.DownArrow && _selectedIndex < grouped.Count - 1)
+                _selectedIndex++;
+
+            if (key == ConsoleKey.Enter)
             {
-                // Example action — you can expand this later
-                Console.SetCursorPosition(0, start + 16);
-                Console.WriteLine($"You selected: {grouped[_selectedIndex].Name}");
-                item.Use(this);
-                Remove(item);
+                var selected = grouped[_selectedIndex];
+
+                // Find ONE matching item in real inventory
+                var item = Items.FirstOrDefault(i => i.Name == selected.Name);
+
+                if (item != null)
+                {
+                    Console.SetCursorPosition(0, start + 16);
+                    Console.WriteLine($"You used: {item.Name}");
+                    item.Use(this);
+                    Remove(item);
+                }
+                else if (Items.Count == 0)
+                {
+                    Console.SetCursorPosition(0, start + 16);
+                    Console.WriteLine("Inventory empty.");
+                }
+
                 Console.ReadKey(true);
             }
-              
+
         } while (key != ConsoleKey.Escape);
+
         FadeOutInventory(start);
     }
+
     protected void DrawInventoryWindow(int start)
     {
-
         for (int row = start; row <= start + 14; row++)
         {
             Console.SetCursorPosition(0, row);
@@ -112,6 +132,7 @@ public abstract class RogueClass : Player {
         Console.SetCursorPosition(0, start + 1);
         Console.WriteLine("│              === INVENTORY ===           │");
         Console.WriteLine("│                                          │");
+
         int line = start + 3;
 
         if (Items.Count == 0)
@@ -122,32 +143,22 @@ public abstract class RogueClass : Player {
         }
         else
         {
-            var grouped = Items
-             .GroupBy(i => i.Name)
-             .Select(g => new {
-              Name = g.Key,
-              Count = g.Count(),
-              Description = g.First().Description,
-              Glyph = g.First().Glyph,
-              Color = g.First().Color
-             })
-      .ToList();
+            var grouped = GetGroupedItems();
 
             for (int i = 0; i < grouped.Count; i++)
             {
                 Console.SetCursorPosition(0, line);
 
                 bool selected = (i == _selectedIndex);
-
                 var item = grouped[i];
 
                 // icon color
-                if(selected)
-                Console.ForegroundColor = item.Color;
+                if (selected)
+                    Console.ForegroundColor = item.Color;
 
-                string icon = item.Glyph.ToString();
+                string icon = item.Glyph;
 
-                // reset for text
+
                 Console.ResetColor();
 
                 Console.Write($"│ {(selected ? ">" : " ")} ");
@@ -157,10 +168,12 @@ public abstract class RogueClass : Player {
                 Console.Write(icon);
                 Console.ResetColor();
 
-                // draw rest
-                Console.WriteLine($" {item.Name} x{item.Count,-14} {item.Description,-15} │");
+                // fixed padding
+                string namePart = $"{item.Name} x{item.Count}";
+                string descPart = item.Description;
 
-                Console.ResetColor();
+                Console.WriteLine($" {namePart,-18} {descPart,-17} │");
+
                 line++;
             }
         }
@@ -177,8 +190,8 @@ public abstract class RogueClass : Player {
 
         Console.SetCursorPosition(0, start + 16);
         Console.WriteLine("Use ↑ ↓ to navigate, Enter to select, Esc to exit.");
-
     }
+
 
     public override string ToString() => $"{ClassName}: {Description} (HP:{_hp}, Str:{_str}, Arm:{_arm})";
 }

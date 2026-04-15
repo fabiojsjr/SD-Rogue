@@ -83,7 +83,15 @@ public class Level : Scene
         MyGame = myGame;
     }
 
-    private void ClearInventoryPanel()//helper method 4
+    /* methods for message log
+    private void AddMessage(string msg)
+    {
+        if (_messageLog.Count >= MaxMessages)
+            _messageLog.Dequeue();
+
+        _messageLog.Enqueue(msg);
+    }
+    private void ClearInventoryPanel()
     {
         for (int row = 5; row <= 22; row++)
         {
@@ -91,17 +99,19 @@ public class Level : Scene
             Console.Write(new string(' ', Console.WindowWidth));
         }
     }
-    //private void DrawMessageLog(IRenderWindow disp)
-    //{
-    //    int startLine = 19; // 19–23 = 5 lines
-    //    int i = 0;
+    private void DrawMessageLog(IRenderWindow disp)
+    {
+        int startLine = 19; // 19–23 = 5 lines
+        int i = 0;
 
-    //    foreach (var msg in _messageLog)
-    //    {
-    //        disp.Draw(msg, new Vector2(0, startLine + i), ConsoleColor.Yellow);
-    //        i++;
-    //    }
-    //}
+        foreach (var msg in _messageLog)
+        {
+            disp.Draw(msg, new Vector2(0, startLine + i), ConsoleColor.Yellow);
+            i++;
+        }
+    }
+  
+    */
     private static void FadeOutGame(IRenderWindow window)
     {
         // 3 fade steps
@@ -132,14 +142,6 @@ public class Level : Scene
             Thread.Sleep(40);
         }
     }
-
-    private void AddMessage(string msg)//helper method 3
-    {
-        if (_messageLog.Count >= MaxMessages)
-            _messageLog.Dequeue();
-
-        _messageLog.Enqueue(msg);
-    }
     private static void ClearMessageLine()//helper method 1
     {
         Console.SetCursorPosition(0, 23);
@@ -153,10 +155,10 @@ public class Level : Scene
         for (int i = 0; i < howMuch; i++)
         {
             var pos = _floor.ElementAt(rng.Next(_floor.Count));
-            _items.Add(new Gold(pos, rng.Next(100, 200)));
+            _items.Add(item: new Gold(pos, rng.Next(100, 200)));
+
         }
     }
-
     private void PrintMessage(string msg)//helper method 2
     {
         int line = 23; // one line above HUD
@@ -165,7 +167,6 @@ public class Level : Scene
         Console.SetCursorPosition(0, line);
         Console.Write(msg);
     }
-
     private void SpreadTheItems()
     {
         var rng = new Random();
@@ -177,15 +178,13 @@ public class Level : Scene
             double roll = rng.NextDouble();
 
             if (roll < 0.4)
-                _items.Add(new Potion(pos, "Health Potion", '!', ConsoleColor.Red));
+                _items.Add(new Potion(pos, "Health Potion", "❤️", ConsoleColor.Red));
             else if (roll < 0.7)
-                _items.Add(new ManaPotion(pos, 10));
+                _items.Add( new ManaPotion(pos, 10));
             else
-                _items.Add(new StrengthPotion(pos));
-
+                _items.Add( new StrengthPotion(pos));
         }
     }
-
     private void SpreadTheEnemies()
     {
         var rng = new Random();
@@ -201,7 +200,6 @@ public class Level : Scene
             _npcsList.Add(gob);
         }
     }
-
     private void DrawEnemies(IRenderWindow disp)
     {
         if (_inFov is null) return;
@@ -212,7 +210,6 @@ public class Level : Scene
                 npc.Draw(disp);
         }
     }
-
     private void SpreadTheXP()
     {
         var rng = new Random();
@@ -221,9 +218,9 @@ public class Level : Scene
         {
             var pos = _floor.ElementAt(rng.Next(_floor.Count));
             _items.Add(new XP(pos, rng.Next(1, 5)));
+
         }
     }
-
     protected void UpdateDiscovered()
     {
         _inFov = fovCalc(_player!.Pos, _senseRadius);
@@ -232,7 +229,6 @@ public class Level : Scene
 
         _discovered.UnionWith(_inFov);
     }
-
     protected TileSet fovCalc(Vector2 pos, int sens)
         => Vector2.getAllTiles().Where(t => (pos - t).RookLength < sens).ToHashSet();
     // -----------------------------------------------------------------------
@@ -261,7 +257,7 @@ public class Level : Scene
             tilesToDraw.UnionWith(_inFov);
 
         disp.fDraw(tilesToDraw, _map, ConsoleColor.Gray);
-        // disp.Draw(_player!.Glyph, _player!.Pos, ConsoleColor.Cyan);
+        disp.Draw(_player!.Glyph, _player!.Pos, ConsoleColor.Cyan);
         var rng = new Random();
         if (_player.Turn % 5 == 0)
             _player._color = (ConsoleColor)rng.Next(10, 16);

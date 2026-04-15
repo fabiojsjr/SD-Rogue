@@ -26,7 +26,7 @@ class Program
             string userChoice = AnsiConsole.Prompt(new SelectionPrompt<string>()
                                 .Title("\nMain menu:")
                                 .AddChoices(
-
+                                    "0) Continue Game:",
                                     "(1) New Game:",
                                     "(2) Load Game:",
                                     "(3) Characters:",
@@ -39,6 +39,30 @@ class Program
 
             switch (userChoice)
             {
+                case "0) Continue Game:":
+                    var savePath = "save.json";
+                    LoadGame loader = new LoadGame();
+                    if (!File.Exists(savePath))
+                    {
+                        AnsiConsole.MarkupLine("[red]No save file found (save.json).[/]");
+                        break;
+                    }
+                    if (AnsiConsole.Confirm($"Load save file '{savePath}'?"))
+                    {
+                        var loaded = LoadGame.LoadMyGame(savePath);
+                        if (loaded == null)
+                        {
+                            AnsiConsole.MarkupLine("[red]Failed to load save file.[/]");
+                        }
+                        else
+                        {
+                            AnsiConsole.MarkupLine("[green]Save loaded. Starting game...[/]");
+                            try { System.Threading.Thread.Sleep(700); } catch { }
+                            Console.Clear();
+                            loaded.run();
+                        }
+                    }
+                    break;
                 case "(1) New Game:":
                     AnsiConsole.MarkupLine("[green]Starting new game...[/]");
                     try { System.Threading.Thread.Sleep(700); } catch { }

@@ -1,16 +1,20 @@
-using System;
 using RogueLib.Dungeon;
 using RogueLib.Utilities;
-using RougeLikeGame.Levels;
-
+using System;
+using static RogueLib.Dungeon.Item;
 
 namespace RougeLikeGame.Levels
 {
-    public class Gold(Vector2 pos, int amount) : Item(pos, '*', ConsoleColor.Yellow)
+    public class Gold : Item
     {
-        private readonly int _amount = amount;
-    
+        private readonly int _amount;
 
+        public Gold(Vector2 pos, int amount, string glyph = "💰")
+            : base(pos, glyph, ConsoleColor.Yellow)
+        {
+            _amount = amount;
+        }
+        public string Glyph { get; set; }
         public int Amount => _amount;
         public override string Name => "Gold";
         public override string Description => $"A pile of {Amount} gold coins.";

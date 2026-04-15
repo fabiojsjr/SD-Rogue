@@ -38,10 +38,8 @@ public abstract class Player : IActor, IDrawable
     }
 
     public string HUD =>
-       $" Class: {RogueClass}  Level:{_level}  Gold: {_gold}    Hp: {_hp}({_maxHp})" +
-        $" MP: {_mana}/{_maxMana} "+
-       $"  Str: {_str}({_maxStr})" +
-       $"  Arm: {_arm}   Exp: {_exp}/{10} Turn: {_turn}";
+       $"[{RogueClass}] Lv:{_level} G:{_gold} HP:{_hp}/{_maxHp} MP:{_mana}/{_maxMana} " +
+       $"Str:{_str} Arm:{_arm} XP:{_exp}/10 T:{_turn}";
 
     // expose gold for saving/loading
     public int Gold
@@ -124,7 +122,7 @@ public abstract class Player : IActor, IDrawable
     {
         int effectiveDamage = Math.Max(0, damage - _arm);
         _hp -= effectiveDamage;
-        Console.SetCursorPosition(0, 23);
+        Console.SetCursorPosition(0, 22);
         Console.Write($"You took {damage} damage!");
 
         if (_hp <= 0)

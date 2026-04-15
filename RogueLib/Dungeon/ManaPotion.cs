@@ -1,7 +1,5 @@
 ﻿using RogueLib.Utilities;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace RogueLib.Dungeon
 {
@@ -10,10 +8,12 @@ namespace RogueLib.Dungeon
         private int _amount;
 
         public ManaPotion(Vector2 pos, int amount = 10)
-      : base(pos, '!', ConsoleColor.Blue)
+            : base(pos, "🔷", ConsoleColor.Blue)
         {
             _amount = amount;
         }
+
+        public override string Description => "Restores mana.";
 
         public override void Use(Player player)
         {
