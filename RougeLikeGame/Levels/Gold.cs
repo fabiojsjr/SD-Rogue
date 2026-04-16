@@ -1,9 +1,8 @@
 using RogueLib.Dungeon;
 using RogueLib.Utilities;
 using System;
-using static RogueLib.Dungeon.Item;
 
-namespace RougeLikeGame.Levels
+namespace RogueLib.Dungeon
 {
     public class Gold : Item
     {
@@ -14,11 +13,15 @@ namespace RougeLikeGame.Levels
         {
             _amount = amount;
         }
-        public string Glyph { get; set; }
+
         public int Amount => _amount;
         public override string Name => "Gold";
         public override string Description => $"A pile of {Amount} gold coins.";
 
-        public override ItemDTO ToDTO() => new ItemDTO { Type = "Gold", Amount = _amount };
+        public override ItemDTO ToDTO() => new ItemDTO
+        {
+            Type = "Gold",
+            Amount = _amount
+        };
     }
 }
