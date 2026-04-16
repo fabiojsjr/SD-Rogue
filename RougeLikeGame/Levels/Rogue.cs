@@ -1,4 +1,3 @@
-
 using RogueLib.Dungeon;
 using RogueLib.Engine;
 using System.Text.RegularExpressions;
@@ -69,7 +68,9 @@ public abstract class RogueClass : Player {
             {
                 DrawInventoryWindow(start);
                 Console.SetCursorPosition(0, start + 16);
-                Console.WriteLine("Inventory empty.");
+                Console.Write(new string(' ', Console.WindowWidth));
+                Console.SetCursorPosition(0, start + 16);
+                Console.WriteLine("Inventory empty, Esc to exit");
                 Console.ReadKey(true);
                 FadeOutInventory(start);
                 return;
@@ -128,7 +129,7 @@ public abstract class RogueClass : Player {
 
         // Title
         Console.SetCursorPosition(0, start + 1);
-        Console.WriteLine("│              === INVENTORY ===           │");
+        Console.WriteLine("│             === INVENTORY ===            │");
 
         // Spacer
         Console.SetCursorPosition(0, start + 2);
@@ -174,7 +175,7 @@ public abstract class RogueClass : Player {
             Console.ResetColor();
 
             // Description (17 chars)
-            Console.Write($" {descPart,-17} │");
+            Console.Write($" {descPart,-16} │");
 
             line++;
         }
