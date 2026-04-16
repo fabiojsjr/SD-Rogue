@@ -1,16 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using RogueLib.Dungeon;
 using RogueLib.Utilities;
+using System;
+using static RogueLib.Dungeon.Item;
 
-namespace SandBox01.Levels;
+namespace RougeLikeGame.Levels
+{
+    public class Gold : Item
+    {
+        private readonly int _amount;
 
-public class Gold : Item {
+        public Gold(Vector2 pos, int amount, string glyph = "💰")
+            : base(pos, glyph, ConsoleColor.Yellow)
+        {
+            _amount = amount;
+        }
+        public string Glyph { get; set; }
+        public int Amount => _amount;
+        public override string Name => "Gold";
+        public override string Description => $"A pile of {Amount} gold coins.";
 
-    public int amount { get; init; }
-    public Gold(Vector2 pos, int amt) : base ('*',pos, ConsoleColor.Yellow) {
-        amount = amt;
+        public override ItemDTO ToDTO() => new ItemDTO { Type = "Gold", Amount = _amount };
     }
-
 }
