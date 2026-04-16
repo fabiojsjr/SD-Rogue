@@ -18,7 +18,7 @@ namespace SandBox01.Levels
                 "Armed with nothing but your wits and your blade, you descend\n" +
                 "into the unknown...\n\n" +
                 "Will YOU be the one to claim the Dragon Lord's treasure?\n" +
-                "Or will the dungeon claim yet another soul?\n\n" +
+                "Or will the dungeon claim yet another soul?\n\n" +  
                 "Your fate is sealed the moment you take your first step.\n" +
                 "Good luck. You'll need it.";
             ;
