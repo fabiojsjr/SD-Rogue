@@ -144,9 +144,11 @@ public class Level : Scene
     private void SpreadTheEnemies()
     {
         var rng = new Random();
-        var howMuch = rng.Next(5, 10);
+        var howManyGoblins = rng.Next(5, 10);
+        var howManyMerchants = rng.Next(3, 3);
 
-        for (int i = 0; i < howMuch; i++)
+        // Add goblins
+        for (int i = 0; i < howManyGoblins; i++)
         {
             var pos = _walkables.ElementAt(rng.Next(_walkables.Count));
 
@@ -155,19 +157,30 @@ public class Level : Scene
 
             _npcsList.Add(gob);
         }
-    }
 
+        // Add merchants
+        for (int i = 0; i < howManyMerchants; i++)
+        {
+            var pos = _walkables.ElementAt(rng.Next(_walkables.Count));
+            var merchant = new Merchant(pos);
+            merchant.PlayerRef = _player;
+            _npcsList.Add(merchant);
+        }
+    }
     private void DrawEnemies(IRenderWindow disp)
     {
-        if (_inFov is null) return;
+        // draw enemies that are either currently in FOV or have been discovered
+        if (_inFov is null && _discovered is null) return;
 
         foreach (var npc in _npcsList)
         {
-            if (_inFov.Contains(npc.Pos))
+            if ((_inFov != null && _inFov.Contains(npc.Pos)) ||
+                (_discovered != null && _discovered.Contains(npc.Pos)))
+            {
                 npc.Draw(disp);
+            }
         }
     }
-
     private void SpreadTheXP()
     {
         var rng = new Random();
@@ -204,16 +217,30 @@ public class Level : Scene
 
     public override void Draw(IRenderWindow? disp)
     {
-        if (disp == null) return;
 
-        var tilesToDraw = new TileSet(_decor);
-        tilesToDraw.IntersectWith(_discovered);
+            // Always draw discovered decor, and also keep discovered floor/tunnel/door tiles
+            var tilesToDraw = new TileSet(_decor ?? new TileSet());
+            if (_discovered != null)
+                tilesToDraw.IntersectWith(_discovered);
 
-        if (_inFov != null)
-            tilesToDraw.UnionWith(_inFov);
+            // Ensure discovered floor/tunnel/door are preserved on screen even when not in FOV
+            if (_discovered != null)
+            {
+                var discoveredGround = new TileSet();
+                if (_floor != null) discoveredGround.UnionWith(_floor);
+                if (_tunnel != null) discoveredGround.UnionWith(_tunnel);
+                if (_door != null) discoveredGround.UnionWith(_door);
 
-        disp.fDraw(tilesToDraw, _map, ConsoleColor.Gray);
-        _player.Draw(disp);
+                discoveredGround.IntersectWith(_discovered);
+                tilesToDraw.UnionWith(discoveredGround);
+            }
+
+            // Always draw current FOV on top
+            if (_inFov != null)
+                tilesToDraw.UnionWith(_inFov);
+
+            disp.fDraw(tilesToDraw, _map, ConsoleColor.Gray);
+            _player!.Draw(disp);
 
         drawItems(disp);
 
@@ -233,6 +260,31 @@ public class Level : Scene
         {
             _player.ShowInventory();
 
+            var bpage = "";
+            for (int i = 0; i < 25; ++i)
+                bpage += new string(' ', 78) + "\n";
+            ClearMessageLine();
+            FadeOutGame(_game.Window);
+            UpdateDiscovered();
+            FadeInGame(_game.Window);
+            _game.Window.Draw(bpage, Console.ForegroundColor);
+            Draw(_game.Window);
+            _game.Window.Display();
+        }
+        else if (command.Name == "trade")
+        {
+            // Find a merchant adjacent to the player
+            var merchant = _npcsList
+                .OfType<Merchant>()
+                .FirstOrDefault(m => (m.Pos - _player.Pos).Length == 1);
+
+            if (merchant == null)
+            {
+                ClearMessageLine();
+                PrintMessage("No merchant nearby.");
+                return;
+            }
+            merchant.TalkToMerchant();
             var bpage = "";
             for (int i = 0; i < 25; ++i)
                 bpage += new string(' ', 78) + "\n";
@@ -276,9 +328,15 @@ public class Level : Scene
 
     private void drawItems(IRenderWindow disp)
     {
-        if (_inFov is null) return;
 
-        foreach (var item in _items.Where(it => _inFov.Contains(it.Pos)))
+        // draw items that are currently in FOV or that have been discovered
+        if (_inFov is null && _discovered is null) return;
+
+        var visible = _items.Where(it =>
+            (_inFov != null && _inFov.Contains(it.Pos)) ||
+            (_discovered != null && _discovered.Contains(it.Pos)));
+
+        foreach (var item in visible)
             item.Draw(disp);
     }
 
@@ -340,6 +398,7 @@ public class Level : Scene
 
         RegisterCommand(ConsoleKey.Q, "quit");
         RegisterCommand(ConsoleKey.I, "inventory");
+        RegisterCommand(ConsoleKey.M, "trade");
     }
 
     public void MovePlayer(Vector2 delta)

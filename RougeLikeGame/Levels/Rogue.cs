@@ -57,62 +57,61 @@ public abstract class RogueClass : Player {
     }
     public override void ShowInventory()
     {
-        int start = 5;
-        ConsoleKey key;
+            int start = 5;
+            ConsoleKey key;
 
-        do
-        {
-            var grouped = GetGroupedItems();
-
-            if (grouped.Count == 0)
+            do
             {
-                DrawInventoryWindow(start);
-                Console.SetCursorPosition(0, start + 16);
-                Console.Write(new string(' ', Console.WindowWidth));
-                Console.SetCursorPosition(0, start + 16);
-                Console.WriteLine("Inventory empty, Esc to exit");
-                Console.ReadKey(true);
-                FadeOutInventory(start);
-                return;
-            }
+                var grouped = GetGroupedItems();
 
-            // Clamp selection
-            if (_selectedIndex >= grouped.Count)
-                _selectedIndex = grouped.Count - 1;
-
-            DrawInventoryWindow(start);
-
-            key = Console.ReadKey(true).Key;
-
-            if (key == ConsoleKey.UpArrow && _selectedIndex > 0)
-                _selectedIndex--;
-
-            if (key == ConsoleKey.DownArrow && _selectedIndex < grouped.Count - 1)
-                _selectedIndex++;
-
-            if (key == ConsoleKey.Enter)
-            {
-                var selected = grouped[_selectedIndex];
-
-                // Find one matching item
-                var item = Items.FirstOrDefault(i => i.Name == selected.Name);
-
-                if (item != null)
+                if (grouped.Count == 0)
                 {
+                    DrawInventoryWindow(start);
                     Console.SetCursorPosition(0, start + 16);
-                    Console.WriteLine($"You used: {item.Name}");
-                    item.Use(this);
-                    Remove(item);
+                    Console.Write(new string(' ', Console.WindowWidth));
+                    Console.SetCursorPosition(0, start + 16);
+                    Console.WriteLine("Inventory empty, Esc to exit");
+                    Console.ReadKey(true);
+                    FadeOutInventory(start);
+                    return;
                 }
 
-                Console.ReadKey(true);
-            }
+                // Clamp selection
+                if (_selectedIndex >= grouped.Count)
+                    _selectedIndex = grouped.Count - 1;
 
-        } while (key != ConsoleKey.Escape);
+                DrawInventoryWindow(start);
 
-        FadeOutInventory(start);
-    }
+                key = Console.ReadKey(true).Key;
 
+                if (key == ConsoleKey.UpArrow && _selectedIndex > 0)
+                    _selectedIndex--;
+
+                if (key == ConsoleKey.DownArrow && _selectedIndex < grouped.Count - 1)
+                    _selectedIndex++;
+
+                if (key == ConsoleKey.Enter)
+                {
+                    var selected = grouped[_selectedIndex];
+
+                    // Find one matching item
+                    var item = Items.FirstOrDefault(i => i.Name == selected.Name);
+
+                    if (item != null)
+                    {
+                        Console.SetCursorPosition(0, start + 16);
+                        Console.WriteLine($"You used: {item.Name}");
+                        item.Use(this);
+                        Remove(item);
+                    }
+
+                    Console.ReadKey(true);
+                }
+
+            } while (key != ConsoleKey.Escape);
+
+            FadeOutInventory(start);
+        }
 
     protected void DrawInventoryWindow(int start)
     {

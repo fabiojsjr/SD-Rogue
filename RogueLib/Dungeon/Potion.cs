@@ -7,6 +7,9 @@ namespace RogueLib.Dungeon
     {
         public string PotionName { get; set; }
 
+        public Potion(Vector2 pos) : base(pos, "❤️", ConsoleColor.Red)
+        { 
+        }
         public Potion(Vector2 pos, string name, string glyph, ConsoleColor color)
             : base(pos, glyph, color)
         {
