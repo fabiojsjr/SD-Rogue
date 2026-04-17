@@ -8,14 +8,14 @@ namespace RogueLib.Dungeon
         private readonly int _amount;
 
         public ManaPotion(Vector2 pos, int amount)
-            : base(pos, "🔵", ConsoleColor.Blue)
+            : base(pos, "🔷", ConsoleColor.Blue)
         {
             _amount = amount;
         }
 
         public int Amount => _amount;
         public override string Name => "Mana Potion";
-        public override string Description => $"Restores {_amount} mana.";
+        public override string Description => $"Restores mana.";
 
         public override void Use(Player player)
         {

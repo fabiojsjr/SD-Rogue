@@ -11,7 +11,7 @@ namespace RogueLib.Dungeon
         }
 
         public override string Name => "Strength Potion";
-        public override string Description => "Temporarily boosts strength.";
+        public override string Description => "boosts strength.";
 
         public override void Use(Player player)
         {
