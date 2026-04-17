@@ -24,7 +24,7 @@ namespace RogueLib.enemies
             HP = hp;
             Damage = damage;
         }
-    
+
         public virtual void Update()
         {
             var rng = new Random();
@@ -47,9 +47,19 @@ namespace RogueLib.enemies
             disp.Draw(Glyph, Pos, Color);
         }
 
-        public void TakeDamage(int dmg)
+        public virtual void TakeDamage(int dmg)
         {
             HP -= dmg;
+        }
+        public virtual void Die()
+        {
+            // Default death logic: remove from level
+            if (PlayerRef != null)
+            {
+                PlayerRef.Exp += 10;
+                Console.WriteLine($"{Name} has been defeated! You gain 10 EXP.");
+            }
+            // Additional cleanup can be done here if needed
         }
     }
 }
