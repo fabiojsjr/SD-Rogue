@@ -2,48 +2,27 @@ using RogueLib.Dungeon;
 using RogueLib.enemies;
 using RogueLib.Engine;
 using RogueLib.Utilities;
-using RougeLikeGame.Levels;
 using SandBox01;
 using Spectre.Console;
+using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
+using System.Threading;
 using TileSet = System.Collections.Generic.HashSet<RogueLib.Utilities.Vector2>;
 using Vector2 = RogueLib.Utilities.Vector2;
+
 namespace RlGameNS;
-// -----------------------------------------------------------------------
-// The Level is the model, all the game world objects live in the model. 
-// player input updates the model, the model updates the view, and the 
-// controller runs the whole thing. 
-//
-// Scene is the base class for all game scenes (levels). Scene is an 
-// abstract class that implements IDrawable and ICommandable. 
-// 
-// A dungeon level is a collection or rooms and tunnels in a 78x25 grid. 
-// each tile is at a point, or grid location, represented by a Vector2. 
-// 
-// *TileSets* are HashSets of grid points, TileSets can be used to tell 
-// GameScreen what tiles to draw. TileSets can be combined with Union and 
-// Intersect to create complex tile sets.
-// -----------------------------------------------------------------------
 
 public class Level : Scene
 {
-    // ---- level config ---- 
     protected string? _map;
     protected int _senseRadius = 4;
-    private readonly Queue<string> _messageLog = new Queue<string>();
-    private readonly ConsoleKey key;
-    private const int MaxMessages = 5;
-    // --- Tile Sets ----- 
-    protected TileSet _walkables; // used to keep track of state of tiles on the map
-    protected TileSet _floor;// walkable tiles 
+
+    protected TileSet _walkables;
+    protected TileSet _floor;
     protected TileSet _tunnel;
-    protected TileSet _door;// walls and other decorations, always visible once discovered
+    protected TileSet _door;
     protected TileSet _decor;
-    // tiles the player has seen
-    // current fov of player
-    // random, or at stairs
     protected TileSet _discovered;
     protected TileSet _inFov;
 
@@ -54,17 +33,22 @@ public class Level : Scene
     public MyGame MyGame { get; }
     public Vector2 pos { get; private set; }
 
-    public Level(RogueLib.Utilities.Player p, string map, Game game, IRenderWindow window)
+    public Level(Player p, string map, Game game, IRenderWindow window)
     {
         if (game == null || p == null || map == null || window == null)
             throw new ArgumentNullException("game, player, map, or window cannot be null");
+
         _player = p;
-        _player.Pos = new Vector2(4, 12);
+
+        // só coloca a posição inicial se ainda não existir posição salva
+        if (_player.Pos == Vector2.Zero)
+            _player.Pos = new Vector2(4, 12);
+
         _map = map;
-        window = window;
         _game = game;
         _items = new List<Item>();
         _inFov = new TileSet();
+
         initMapTileSets(map);
         UpdateDiscovered();
         RegisterCommandsWithScene();
@@ -73,7 +57,6 @@ public class Level : Scene
         SpreadTheItems();
         SpreadTheEnemies();
         ClearMessageLine();
-        
     }
 
     public Level(Player player, string map1, MyGame myGame)
@@ -83,41 +66,10 @@ public class Level : Scene
         MyGame = myGame;
     }
 
-    /* methods for message log
-    private void AddMessage(string msg)
-    {
-        if (_messageLog.Count >= MaxMessages)
-            _messageLog.Dequeue();
-
-        _messageLog.Enqueue(msg);
-    }
-    private void ClearInventoryPanel()
-    {
-        for (int row = 5; row <= 22; row++)
-        {
-            Console.SetCursorPosition(0, row);
-            Console.Write(new string(' ', Console.WindowWidth));
-        }
-    }
-    private void DrawMessageLog(IRenderWindow disp)
-    {
-        int startLine = 19; // 19–23 = 5 lines
-        int i = 0;
-
-        foreach (var msg in _messageLog)
-        {
-            disp.Draw(msg, new Vector2(0, startLine + i), ConsoleColor.Yellow);
-            i++;
-        }
-    }
-  
-    */
     private static void FadeOutGame(IRenderWindow window)
     {
-        // 3 fade steps
         for (int step = 0; step < 3; step++)
         {
-            // Clear the entire back buffer
             for (int y = 0; y < window.Height; y++)
             {
                 for (int x = 0; x < window.Width; x++)
@@ -130,61 +82,65 @@ public class Level : Scene
             Thread.Sleep(40);
         }
     }
+
     private void FadeInGame(IRenderWindow window)
     {
-        // Draw the game normally first
         Draw(window);
 
-        // 3 fade steps
         for (int step = 0; step < 3; step++)
         {
             window.Display();
             Thread.Sleep(40);
         }
     }
-    private static void ClearMessageLine()//helper method 1
+
+    private static void ClearMessageLine()
     {
         Console.SetCursorPosition(0, 23);
         Console.Write(new string(' ', Console.WindowWidth));
         Console.SetCursorPosition(0, 23);
     }
+
     private void SpreadTheGold()
     {
         var rng = new Random();
         var howMuch = rng.Next(5, 20);
+
         for (int i = 0; i < howMuch; i++)
         {
             var pos = _floor.ElementAt(rng.Next(_floor.Count));
-            _items.Add(item: new Gold(pos, rng.Next(100, 200)));
-
+            _items.Add(new Gold(pos, rng.Next(100, 200)));
         }
     }
-    private void PrintMessage(string msg)//helper method 2
+
+    private void PrintMessage(string msg)
     {
-        int line = 23; // one line above HUD
+        int line = 23;
         Console.SetCursorPosition(0, line);
-        Console.Write(new string(' ', Console.WindowWidth)); // clear
+        Console.Write(new string(' ', Console.WindowWidth));
         Console.SetCursorPosition(0, line);
         Console.Write(msg);
     }
+
     private void SpreadTheItems()
     {
         var rng = new Random();
         var howMuch = rng.Next(5, 20);
+
         for (int i = 0; i < howMuch; i++)
         {
             var pos = _floor.ElementAt(rng.Next(_floor.Count));
-
             double roll = rng.NextDouble();
 
             if (roll < 0.4)
                 _items.Add(new Potion(pos, "Health Potion", "❤️", ConsoleColor.Red));
             else if (roll < 0.7)
-                _items.Add( new ManaPotion(pos, 10));
+                _items.Add(new ManaPotion(pos, 10));
             else
-                _items.Add( new StrengthPotion(pos));
+                _items.Add(new StrengthPotion(pos));
         }
     }
+
     private void SpreadTheEnemies()
     {
         var rng = new Random();
@@ -200,6 +156,7 @@ public class Level : Scene
             _npcsList.Add(gob);
         }
     }
+
     private void DrawEnemies(IRenderWindow disp)
     {
         if (_inFov is null) return;
@@ -210,76 +167,76 @@ public class Level : Scene
                 npc.Draw(disp);
         }
     }
+
     private void SpreadTheXP()
     {
         var rng = new Random();
         var howMuch = rng.Next(5, 15);
+
         for (int i = 0; i < howMuch; i++)
         {
             var pos = _floor.ElementAt(rng.Next(_floor.Count));
             _items.Add(new XP(pos, rng.Next(1, 5)));
-
         }
     }
+
     protected void UpdateDiscovered()
     {
-        _inFov = fovCalc(_player!.Pos, _senseRadius);
+        _inFov = fovCalc(_player.Pos, _senseRadius);
+
         if (_discovered is null)
             _discovered = new TileSet();
 
         _discovered.UnionWith(_inFov);
     }
+
     protected TileSet fovCalc(Vector2 pos, int sens)
         => Vector2.getAllTiles().Where(t => (pos - t).Length < sens).ToHashSet();
-    // -----------------------------------------------------------------------
+
+
     public override void Update()
     {
-        _player!.Update();
+        _player.Update();
+
         foreach (var npc in _npcsList)
             npc.Update();
-        // foreach item update
-        //foreach (Item item in _items)
-        //{
-
-        //}
-        // check for player death -- on death build RIP message
-        //if (_player.HP <= 0)
-        //{
-
-        //}
-        
     }
+
     public override void Draw(IRenderWindow? disp)
     {
+        if (disp == null) return;
+
         var tilesToDraw = new TileSet(_decor);
         tilesToDraw.IntersectWith(_discovered);
+
         if (_inFov != null)
             tilesToDraw.UnionWith(_inFov);
 
         disp.fDraw(tilesToDraw, _map, ConsoleColor.Gray);
-        _player!.Draw(disp);
+        _player.Draw(disp);
 
         drawItems(disp);
+
         if (_inFov != null)
             DrawEnemies(disp);
-        // draw only items that are currently in the player's field-of-view
+
         disp.Draw(_player.HUD, new Vector2(0, 24), ConsoleColor.Green);
-       
     }
 
     public override void DoCommand(Command command)
     {
-        // player ctl 
         if (command.Name == "up") MovePlayer(Vector2.N);
         else if (command.Name == "down") MovePlayer(Vector2.S);
         else if (command.Name == "left") MovePlayer(Vector2.W);
         else if (command.Name == "right") MovePlayer(Vector2.E);
         else if (command.Name == "inventory")
-        {         
+        {
             _player.ShowInventory();
+
             var bpage = "";
             for (int i = 0; i < 25; ++i)
                 bpage += new string(' ', 78) + "\n";
+
             ClearMessageLine();
             FadeOutGame(_game.Window);
             UpdateDiscovered();
@@ -290,9 +247,6 @@ public class Level : Scene
         }
         else if (command.Name == "quit")
         {
-  // -----------------------------------------------------------------------
-  // save and exit to menu
-  // -------------------------------------------------------------------------
             try { AnsiConsole.Clear(); Console.SetCursorPosition(0, 0); } catch { }
 
             Console.Write("Save before returning to menu? (y/n): ");
@@ -300,8 +254,15 @@ public class Level : Scene
 
             if (key.Key == ConsoleKey.Y && _game is MyGame mg)
             {
-                try { mg.SaveToFile("save.json"); Console.WriteLine(" Saved."); }
-                catch { Console.WriteLine(" \nSave failed."); }
+                try
+                {
+                    mg.SaveToFile("save.json");
+                    Console.WriteLine(" Saved.");
+                }
+                catch
+                {
+                    Console.WriteLine(" \nSave failed.");
+                }
             }
             else if (key.Key == ConsoleKey.N)
             {
@@ -311,29 +272,18 @@ public class Level : Scene
             try { Console.SetCursorPosition(0, 0); } catch { }
             _levelActive = false;
         }
-    
     }
 
     private void drawItems(IRenderWindow disp)
     {
-
         if (_inFov is null) return;
 
         foreach (var item in _items.Where(it => _inFov.Contains(it.Pos)))
             item.Draw(disp);
+    }
 
-    }   
     private void initMapTileSets(string map)
     {
-        // ------ rules for map ------
-        // . - floor, walkable and transparent.
-        // + - door, walkable and transparent // # - tunnel, walkable and transparent
-        // ' ' - solid stone, not walkable, not transparent.
-        // '|' - wall, not walkable, not transparent, but discoverable.'
-        //  others are treated the same as wall.
-        // tunnel, wall, and doorways are decor, once discovered they are visible.
-        var lines = map.Split('\n');
-
         _floor = new TileSet();
         _tunnel = new TileSet();
         _door = new TileSet();
@@ -348,27 +298,14 @@ public class Level : Scene
         }
 
         _walkables = _floor.Union(_tunnel).Union(_door).ToHashSet();
-        //      for (int row = 0; row < lines.Length; ++row) {
-        //         for (int col = 0; col < lines[row].Length; ++col) {
-        //            char tile = lines[row][col];
-        //
-        //            if (tile == '.' || tile == '+' || tile == '#') {
-        //               _walkables.Add(new Vector2(col, row));
-        //               _decor.Add(new Vector2(col, row));
-        //            } else if (tile != ' ') {
-        //               _decor.Add(new Vector2(col, row));
-        //            }
-        //         }
-        //      }
     }
+
     private Item? GetItemAt(Vector2 pos)
         => _items.FirstOrDefault(i => i.Pos.Equals(pos));
+
     private void RemoveItem(Item item)
         => _items.Remove(item);
 
-    // ------------------------------------------------------
-    // Commands 
-    // ------------------------------------------------------
     public void HandlePlayerMove(Player player, Vector2 newPos)
     {
         player.Pos = newPos;
@@ -407,12 +344,12 @@ public class Level : Scene
 
     public void MovePlayer(Vector2 delta)
     {
-        var newPos = _player!.Pos + delta;
+        var newPos = _player.Pos + delta;
 
         var enemy = _npcsList.FirstOrDefault(n => n.Pos.Equals(newPos));
         if (enemy != null)
         {
-            enemy.TakeDamage(dmg: _player.Strength);
+            enemy.TakeDamage(_player.Strength);
             ClearMessageLine();
             PrintMessage($"You hit the {enemy.Name}!");
 
@@ -429,31 +366,30 @@ public class Level : Scene
 
         if (_walkables.Contains(newPos))
         {
-            var oldPos = _player!.Pos;
-            _player!.Pos = newPos;
-            _walkables.Remove(newPos);// new tile is now occupied
-            _walkables.Add(oldPos);// old tile is now free
+            var oldPos = _player.Pos;
+            _player.Pos = newPos;
+            _walkables.Remove(newPos);
+            _walkables.Add(oldPos);
             UpdateDiscovered();
-            // check for items at the new position and pick them up
+
             var item = _items.FirstOrDefault(it => it.Pos.Equals(newPos));
             if (item != null)
             {
-                // add item to player's inventorys
-                if (item is Gold g) 
+                if (item is Gold g)
                 {
-                    _player!.AddGold(g.Amount);  
+                    _player.AddGold(g.Amount);
                     _items.Remove(item);
                     PrintMessage($"Picked up {g.Amount} gold.");
                 }
                 else if (item is XP xp)
                 {
-                    _player!.AddExp(xp.Amount);
+                    _player.AddExp(xp.Amount);
                     _items.Remove(item);
                     PrintMessage($"Picked up {xp.Amount} XP.");
                 }
                 else
                 {
-                    _player!.Add(item); 
+                    _player.Add(item);
                     _items.Remove(item);
                     PrintMessage($"Picked up {item.Name}.");
                 }

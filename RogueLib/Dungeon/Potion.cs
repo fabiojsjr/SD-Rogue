@@ -1,8 +1,7 @@
-﻿using RogueLib.Dungeon;
-using RogueLib.Utilities;
+﻿using RogueLib.Utilities;
 using System;
 
-namespace RougeLikeGame.Levels
+namespace RogueLib.Dungeon
 {
     public class Potion : Item
     {
@@ -13,7 +12,6 @@ namespace RougeLikeGame.Levels
         {
             PotionName = name;
         }
-        public string Glyph { get; set; }
 
         public override string Name => PotionName;
         public override string Description => "Restores health.";
@@ -26,5 +24,11 @@ namespace RougeLikeGame.Levels
             Console.SetCursorPosition(0, 23);
             Console.Write($"You used a {Name} and healed {healAmount} HP!");
         }
+
+        public override ItemDTO ToDTO() => new ItemDTO
+        {
+            Type = "Potion",
+            Amount = 0
+        };
     }
 }
