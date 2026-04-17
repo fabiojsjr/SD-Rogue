@@ -1,7 +1,6 @@
 ﻿using RogueLib.Utilities;
 using Spectre.Console;
 using RogueLib.Dungeon;
-using RougeLikeGame.Levels;
 
 namespace RogueLib.enemies
 {
@@ -27,7 +26,7 @@ namespace RogueLib.enemies
             {
                 ("Health Potion", 10, () => new Potion(PlayerRef.Pos)),
                 ("Strength Potion", 20, () => new StrengthPotion(PlayerRef.Pos)),
-                ("Mana Potion", 15, () => new ManaPotion(PlayerRef.Pos)),
+                ("Mana Potion", 15, () => new ManaPotion(PlayerRef.Pos, 20)),
             };
 
             do
