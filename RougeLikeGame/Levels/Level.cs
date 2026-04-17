@@ -230,7 +230,7 @@ public class Level : Scene
         _discovered.UnionWith(_inFov);
     }
     protected TileSet fovCalc(Vector2 pos, int sens)
-        => Vector2.getAllTiles().Where(t => (pos - t).RookLength < sens).ToHashSet();
+        => Vector2.getAllTiles().Where(t => (pos - t).Length < sens).ToHashSet();
     // -----------------------------------------------------------------------
     public override void Update()
     {

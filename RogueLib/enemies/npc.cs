@@ -35,7 +35,7 @@ namespace RogueLib.enemies
 
             Pos += dir;
 
-            if (PlayerRef != null && (Pos - PlayerRef.Pos).RookLength == 1)
+            if (PlayerRef != null && (Pos - PlayerRef.Pos).Length == 1)
             {
                 PlayerRef.TakeDamage(Damage);
                 Console.WriteLine($"{Name} hits you for {Damage} damage!");

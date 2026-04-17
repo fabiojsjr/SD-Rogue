@@ -21,7 +21,7 @@ namespace RogueLib.enemies
         }
         public override void Update()
         {
-            if ((PlayerRef.Pos - Pos).RookLength == 1)
+            if ((PlayerRef.Pos - Pos).Length == 1)
             {
                 PlayerRef.TakeDamage(3);
                 return;
