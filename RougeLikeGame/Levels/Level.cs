@@ -28,7 +28,7 @@ public class Level : Scene
 
     protected List<Item> _items;
     private List<NPC> _npcsList = new List<NPC>();
-
+    public static bool BossDefeated { get; private set; } = false;
     public string Map1 { get; }
     public MyGame MyGame { get; }
     public Vector2 pos { get; private set; }
@@ -57,6 +57,7 @@ public class Level : Scene
         SpreadTheItems();
         SpreadTheEnemies();
         ClearMessageLine();
+       
     }
 
     public Level(Player player, string map1, MyGame myGame)
@@ -166,6 +167,12 @@ public class Level : Scene
             merchant.PlayerRef = _player;
             _npcsList.Add(merchant);
         }
+        //Add boss
+        var bossPos = _walkables.ElementAt(rng.Next(_walkables.Count));
+        var boss = new Boss(bossPos, "Bob", 100);
+        boss.PlayerRef = _player;
+        _npcsList.Add(boss);
+
     }
     private void DrawEnemies(IRenderWindow disp)
     {
@@ -201,6 +208,21 @@ public class Level : Scene
             _discovered = new TileSet();
 
         _discovered.UnionWith(_inFov);
+    }
+
+    private void DrawBossHealth(IRenderWindow disp)
+    {
+        var boss = _npcsList.OfType<Boss>().FirstOrDefault();
+        if (boss == null) return;
+
+        int barWidth = 50;
+        double pct = (double)boss.HP / boss.MaxHP;
+        int filled = (int)(pct * barWidth);
+
+        string bar = "[" + new string('*', filled) + new string('-', barWidth - filled) + "]";
+        string text = $"BOSS {boss.Name} HP: {boss.HP}/{boss.MaxHP} {bar}";
+
+        disp.Draw(text, new Vector2(0, 22), ConsoleColor.Red);
     }
 
     protected TileSet fovCalc(Vector2 pos, int sens)
@@ -246,6 +268,10 @@ public class Level : Scene
 
         if (_inFov != null)
             DrawEnemies(disp);
+
+        var boss = _npcsList.OfType<Boss>().FirstOrDefault();
+        if (boss != null)
+            DrawBossHealth(disp);
 
         disp.Draw(_player.HUD, new Vector2(0, 24), ConsoleColor.Green);
     }
