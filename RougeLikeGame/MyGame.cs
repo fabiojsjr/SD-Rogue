@@ -88,7 +88,7 @@ public class MyGame : Game
              #             # └───────────────────────┘
              ###############
       """;
-<<<<<<< HEAD
+
 
     public const string map2 =
 
@@ -136,7 +136,6 @@ public class MyGame : Game
 
 """;
 
+
 }
-=======
-}
->>>>>>> 8cbe9e8650cf293a99ba8729603e1ef563a0192c
+
