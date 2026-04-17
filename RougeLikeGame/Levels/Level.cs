@@ -40,7 +40,7 @@ public class Level : Scene
 
         _player = p;
 
-        // só coloca a posição inicial se ainda não existir posição salva
+        // Only set the initial position if there isn’t already a saved position
         if (_player.Pos == Vector2.Zero)
             _player.Pos = new Vector2(4, 12);
 

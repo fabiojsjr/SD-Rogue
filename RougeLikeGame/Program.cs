@@ -13,6 +13,10 @@ class Program
 {
     static void Main(string[] args)
     {
+        Console.SetWindowSize(78, 26);
+        Console.SetBufferSize(78, 26);
+        Console.CursorVisible = false;
+
         Console.Clear();
         bool isRunning = true;
 
@@ -73,7 +77,7 @@ class Program
 
                         var newGameClassChoice = AnsiConsole.Prompt(
                             new SelectionPrompt<string>()
-                                .Title("Choose your class:")
+                                .Title("Choose your Character:")
                                 .AddChoices(RogueFactory.GetOptions())
                         );
 
@@ -125,7 +129,7 @@ class Program
                         {
                             var characterClassChoice = AnsiConsole.Prompt(
                                 new SelectionPrompt<string>()
-                                    .Title("Choose a class:")
+                                    .Title("Choose a character:")
                                     .AddChoices(classOptions)
                             );
 
