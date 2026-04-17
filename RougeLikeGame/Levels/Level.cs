@@ -126,7 +126,7 @@ public class Level : Scene
     private void SpreadTheItems()
     {
         var rng = new Random();
-        var howMuch = rng.Next(5, 20);
+        var howMuch = rng.Next(5, 25);
 
         for (int i = 0; i < howMuch; i++)
         {
@@ -220,7 +220,7 @@ public class Level : Scene
         int filled = (int)(pct * barWidth);
 
         string bar = "[" + new string('*', filled) + new string('-', barWidth - filled) + "]";
-        string text = $"BOSS {boss.Name} HP: {boss.HP}/{boss.MaxHP} {bar}";
+        string text = $"BOSS: {boss.Name} HP: {boss.HP}/{boss.MaxHP} {bar}";
 
         disp.Draw(text, new Vector2(0, 22), ConsoleColor.Red);
     }
@@ -327,7 +327,7 @@ public class Level : Scene
         {
             try { AnsiConsole.Clear(); Console.SetCursorPosition(0, 0); } catch { }
 
-            Console.Write("Save before returning to menu? (y/n): ");
+            Console.Write("Save before returning to menu? (y/n)\n: ");
             var key = Console.ReadKey(true);
 
             if (key.Key == ConsoleKey.Y && _game is MyGame mg)
@@ -400,7 +400,7 @@ public class Level : Scene
             player.Add(item);
             RemoveItem(item);
             ClearMessageLine();
-            PrintMessage($"Picked up {item.Name}!");
+            PrintMessage($"Picked up {item.Name}!\n");
         }
     }
 

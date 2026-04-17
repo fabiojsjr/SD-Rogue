@@ -14,17 +14,17 @@ namespace RogueLib.enemies
 
         private static readonly string[] Taunts =
         {
-            "You dare challenge me?",
-            "Your journey ends here.",
-            "I will crush you.",
-            "Your fate is sealed!"
+            "You dare challenge me?\n",
+            "Your journey ends here.\n",
+            "I will crush you.\n",
+            "Your fate is sealed!\n"
         };
 
         public Boss(Vector2 pos, string name = "Bob", int health = 100)
             : base(pos, name, 'Ω', ConsoleColor.DarkRed, health, 5)
         {
             if (bossExists)
-                throw new Exception("A Boss already exists in this level!");
+                throw new Exception("A Boss already exists in this level!\n");
 
             bossExists = true;
             MaxHP = health;
@@ -41,7 +41,7 @@ namespace RogueLib.enemies
             {
                 enraged = true;
                 Damage += 2;
-                Console.WriteLine($"{Name} becomes enraged!");
+                Console.WriteLine($"{Name} becomes enraged!\n");
             }
 
             if (HP <= 0)
@@ -60,7 +60,7 @@ namespace RogueLib.enemies
             if (PlayerRef != null)
             {
                 PlayerRef.Exp += 50;
-                Console.WriteLine("*** THE BOSS COLLAPSES IN A BURST OF DARK ENERGY ***");
+                Console.WriteLine("\n*** THE BOSS COLLAPSES IN A BURST OF DARK ENERGY ***");
             }
 
             bossExists = false;
@@ -86,7 +86,7 @@ namespace RogueLib.enemies
 
             if (dist == 2 && attackCooldown == 0)
             {
-                Console.WriteLine($"{Name} lunges at you!");
+                Console.WriteLine($"{Name} lunges at you!\n");
                 PlayerRef.TakeDamage(2);
                 attackCooldown = 12;
                 return;
