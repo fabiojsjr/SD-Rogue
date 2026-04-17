@@ -6,7 +6,7 @@ namespace RogueLib.Dungeon;
 public abstract class Item : IDrawable
 {
     public Vector2 Pos { get; set; }
-
+    
     // The actual glyph used for drawing
     public string Glyph { get; }
 

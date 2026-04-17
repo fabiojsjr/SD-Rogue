@@ -10,4 +10,8 @@
       <Folder Include="Actors\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="Spectre.Console" Version="0.55.1" />
+    </ItemGroup>
+
 </Project>

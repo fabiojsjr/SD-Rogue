@@ -26,7 +26,6 @@ public abstract class Player : IActor, IDrawable
     protected int _maxHp = 12;
     protected int _maxStr = 16;
     protected int _turn = 0;
- 
 
     public int Turn => _turn;
     public Player(string name, string className)
